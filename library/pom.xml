@@ -91,14 +91,26 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<!-- DOT NOT REMOVE THIS COMMENT, FOR FIXING ./mvnw install ERROR
 	<build>
 		<plugins>
+            <!-- Delete the application.properties file in the jar package
+	        -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/application.properties</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+	        <!-- DOT NOT REMOVE THIS COMMENT, FOR FIXING ./mvnw install ERROR
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+	        -->
 		</plugins>
 	</build>
-	-->
 </project>

@@ -25,6 +25,14 @@
     $ ./mvnw install && ./mvnw spring-boot:run --projects com.origin:library
     $ ./mvnw install && ./mvnw spring-boot:run --projects com.origin:hello
 
+使用 Docker Compose
+
+    $ cd library
+    $ vim pom.xml
+    $ mvn package
+    $ docker compose up
+    $ docker compose start app
+
 ## 项目结构
 
 ### 单模块服务端

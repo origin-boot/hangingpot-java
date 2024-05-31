@@ -26,6 +26,14 @@ Client:
     $ ./mvnw install && ./mvnw spring-boot:run --projects com.origin:library
     $ ./mvnw install && ./mvnw spring-boot:run --projects com.origin:hello
 
+Using Docker Compose
+
+    $ cd library
+    $ vim pom.xml
+    $ mvn package
+    $ docker compose up
+    $ docker compose start app
+
 ## Project Structure
 
 ### Single Module Server

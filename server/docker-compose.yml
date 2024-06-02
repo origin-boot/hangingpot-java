@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  # rm volumes/mysql-data/mysql.sock
+  # to resolve the error: chown: changing ownership of '/var/lib/mysql/mysql.sock': No such file or directory
+  # pay attention to the pom.xml file: spring-boot-maven-plugin
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./volumes/mysql-data:/var/lib/mysql
+      - ./migrations/mysql_schema.sql:/docker-entrypoint-initdb.d/01_init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: test123456
+      MYSQL_DATABASE: hangingpot
+      MYSQL_USER: worker
+      MYSQL_PASSWORD: 123456
+    ports:
+      - "5506:3306"
+    # healthcheck:
+    #   test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uworker", "-p123456"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: java.Dockerfile
+    ports:
+      - "8080:8080"
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+    command: java -jar app.jar --spring.config.location=file:dev.properties

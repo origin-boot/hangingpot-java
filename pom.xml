@@ -12,5 +12,6 @@
 	<modules>
 		<module>library</module>
 		<module>hello</module>
+		<module>server</module>
 	</modules>
 </project>

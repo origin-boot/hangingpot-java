@@ -1,6 +1,8 @@
 package com.origin.hangingpot.port.control;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,12 +12,27 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.MoreExecutors;
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
 	@Bean
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
+	}
+
+	@Bean
+	public EventBus eventBus() {
+		return new EventBus();
+	}
+
+	@Bean
+	public AsyncEventBus asyncEventBus() {
+		ExecutorService executorService = Executors.newFixedThreadPool(8);
+		return new AsyncEventBus(MoreExecutors.listeningDecorator(executorService));
 	}
 
 	@Autowired

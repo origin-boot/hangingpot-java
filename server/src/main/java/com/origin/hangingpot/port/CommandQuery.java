@@ -1,15 +1,8 @@
 package com.origin.hangingpot.port;
 
-import java.util.List;
-
-import com.origin.hangingpot.domain.User;
-
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 
 import lombok.Data;
 

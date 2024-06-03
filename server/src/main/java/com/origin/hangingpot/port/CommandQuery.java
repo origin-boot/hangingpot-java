@@ -16,3 +16,14 @@ class LoginCommand {
     @Length(min = 4, max = 20, message = "password length must be between 4 and 20")
     private String password;
 }
+
+@Data
+class PageCommand {
+
+    private String searchText;
+
+
+    private Integer page;
+
+    private Integer size;
+}

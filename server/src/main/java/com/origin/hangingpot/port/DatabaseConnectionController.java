@@ -27,10 +27,9 @@ public class DatabaseConnectionController {
      * 分页获取所有数据库源信息
      */
     @GetMapping("/api/db/list")
-    Ok<Page<DatabaseConnection>> list(@Valid PageCommand pageCommand) {
-
+    Ok<PageResource> list(@Valid PageCommand pageCommand) {
         Page<DatabaseConnection> databaseConnections = databaseConnectionRepository.findAll(PageRequest.of(pageCommand.getPage(),pageCommand.getSize()));
-        return Ok.of(databaseConnections);
+        return Ok.of(PageResource.of(databaseConnections));
     }
 
 }

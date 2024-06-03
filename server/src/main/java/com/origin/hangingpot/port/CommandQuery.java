@@ -1,7 +1,9 @@
 package com.origin.hangingpot.port;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
+import lombok.Builder;
 import org.hibernate.validator.constraints.Length;
 
 import lombok.Data;
@@ -20,10 +22,19 @@ class LoginCommand {
 @Data
 class PageCommand {
 
+
     private String searchText;
 
 
+    @Min(0)
     private Integer page;
 
+    @Min(1)
     private Integer size;
+}
+
+@Data
+@Builder
+class PageInfo{
+    private Long total;
 }

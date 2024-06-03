@@ -8,8 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +29,29 @@ public class DatabaseConnectionController {
     Ok<PageResource> list(@Valid PageCommand pageCommand) {
         Page<DatabaseConnection> databaseConnections = databaseConnectionRepository.findAll(PageRequest.of(pageCommand.getPage(),pageCommand.getSize()));
         return Ok.of(PageResource.of(databaseConnections));
+    }
+
+    /**
+     * 添加
+     */
+    @PostMapping("/api/db/add")
+    void add(@Valid @RequestBody DatabaseConnection databaseConnection) {
+        databaseConnectionRepository.save(databaseConnection);
+    }
+    /**
+     * 删除
+     *
+     */
+    @DeleteMapping("/api/db/delete")
+    void delete(@RequestParam Long id) {
+        databaseConnectionRepository.deleteById(id);
+    }
+    /**
+     * 更新
+     */
+    @PutMapping("/api/db/update")
+    void update(@Valid @RequestBody DatabaseConnection databaseConnection) {
+        databaseConnectionRepository.save(databaseConnection);
     }
 
 }

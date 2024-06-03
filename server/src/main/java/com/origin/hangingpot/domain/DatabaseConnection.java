@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "xuanhu_database_connection")
+@Table(name = "database_connection")
 public class DatabaseConnection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

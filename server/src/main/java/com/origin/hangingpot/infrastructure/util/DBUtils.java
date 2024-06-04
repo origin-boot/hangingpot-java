@@ -1,5 +1,15 @@
 package com.origin.hangingpot.infrastructure.util;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidPooledConnection;
+import com.origin.hangingpot.domain.BaseDBInfo;
+import com.origin.hangingpot.domain.ColumnInfo;
+import com.origin.hangingpot.domain.DatabaseConnection;
+import com.origin.hangingpot.domain.TableInfo;
+import com.origin.hangingpot.infrastructure.db.DataSourceFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -172,4 +182,43 @@ public class DBUtils {
 //        sql = sql.deleteCharAt(sql.length() - 1).append(";");
         return sql.toString();
     }
+
+    /**
+     * 获取数据库的表列表
+     */
+    public static TableInfo getMetaInfo(DatabaseConnection databaseConnection,String tableName) {
+        BaseDBInfo baseDBInfo = new BaseDBInfo();
+        baseDBInfo.setUrl(databaseConnection.getUrl());
+        baseDBInfo.setUsername(databaseConnection.getUsername());
+        baseDBInfo.setPassword(databaseConnection.getPassword());
+
+        DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
+        TableInfo tableInfo = new TableInfo();
+        try (Connection root = mysql.getConnection();) {
+            PreparedStatement preparedStatement = root.prepareStatement("select * from "+tableName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.setFetchSize(1000);
+            int columnCount = resultSet.getMetaData().getColumnCount();
+
+            List<ColumnInfo> columns = new ArrayList<>();
+            for (int i = 1; i <= columnCount; i++) {
+                ColumnInfo columnInfo = new ColumnInfo();
+                columnInfo.setFiledName(resultSet.getMetaData().getColumnName(i));
+                columnInfo.setFiledType(resultSet.getMetaData().getColumnTypeName(i));
+                columnInfo.setRemarks(resultSet.getMetaData().getColumnLabel(i));
+                columns.add(columnInfo);
+            }
+            tableInfo.setColumns(columns);
+            tableInfo.setTableName(resultSet.getMetaData().getCatalogName(1));
+            tableInfo.setRemarks(resultSet.getMetaData().getCatalogName(1));
+            tableInfo.setType(resultSet.getMetaData().getCatalogName(1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return tableInfo;
+
+    }
+
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.origin.library.domain.Book;
 import com.origin.library.domain.Page;
 import com.origin.library.infrastructure.exp.LambdaQueryWrapper;
+import com.origin.library.infrastructure.exp.RepositoryShortcutExecutor;
 import com.origin.library.infrastructure.exp.SelectDataset;
 import com.origin.library.infrastructure.util.PageUtil;
 
@@ -26,7 +27,17 @@ interface AdvancedBookRepository {
 }
 
 public interface BookRepository
-		extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book>, AdvancedBookRepository {
+		extends JpaRepository<Book, Long>, RepositoryShortcutExecutor<Book>, AdvancedBookRepository {
+
+	default Page<Book> searchBooksLambda(String keyword, int pageNumber, int pageSize) {
+		LambdaQueryWrapper where = new LambdaQueryWrapper()
+				.when(isNotBlank(keyword), w -> w.like("name", quoteLike(keyword)));
+		Specification<Book> spec = new SelectDataset()
+				.where(where)
+				.orderByAsc("id")
+				.build();
+		return findAll(spec, pageNumber, pageSize);
+	}
 
 	default Page<Book> searchBooksSpec(String keyword, int pageNumber, int pageSize) {
 		Specification<Book> spec = new Specification<Book>() {
@@ -43,13 +54,6 @@ public interface BookRepository
 		return Page.of(findAll(spec, PageUtil.pageable(pageNumber, pageSize)));
 	}
 
-	default Page<Book> searchBooksLambda(String keyword, int pageNumber, int pageSize) {
-		LambdaQueryWrapper where = new LambdaQueryWrapper().when(
-				keyword != null && !keyword.isEmpty(),
-				w -> w.like("name", "%" + keyword + "%"));
-		Specification<Book> spec = new SelectDataset().where(where).orderByAsc("id").build();
-		return Page.of(findAll(spec, PageUtil.pageable(pageNumber, pageSize)));
-	}
 }
 
 @Service

@@ -1,9 +1,6 @@
 package com.origin.hangingpot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -17,7 +14,6 @@ import java.time.Instant;
 @Table(name = "project")
 public class Project {
     @Id
-    @Column(name = "id", nullable = false)
     private Long id;
 
     @Size(max = 255)

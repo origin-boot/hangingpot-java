@@ -3,7 +3,9 @@ package com.origin.hangingpot.port;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 import lombok.Data;
@@ -20,6 +22,8 @@ class LoginCommand {
 }
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 class PageCommand {
 
 
@@ -31,6 +35,7 @@ class PageCommand {
 
     @Min(1)
     private Integer size;
+
 }
 
 @Data

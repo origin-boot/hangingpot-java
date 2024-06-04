@@ -15,6 +15,7 @@ public class EventController {
 
 	public EventController(EventBus eventBus, AsyncEventBus asyncEventBus) {
 		eventBus.register(this);
+
 		asyncEventBus.register(this);
 	}
 

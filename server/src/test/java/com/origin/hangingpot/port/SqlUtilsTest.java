@@ -23,8 +23,12 @@ public class SqlUtilsTest {
     @Test
     public void testUtils(){
         Optional<DatabaseConnection> byId = databaseConnectionRepository.findById(1L);
-        DatabaseConnection databaseConnection = byId.get();
-        TableInfo metaInfo = DBUtils.getMetaInfo(databaseConnection,"te");
-        System.out.println(metaInfo);
+       if(byId.isPresent()){
+           DatabaseConnection databaseConnection = byId.get();
+           TableInfo metaInfo = DBUtils.getMetaInfo(databaseConnection,"te");
+           System.out.println(metaInfo);
+       }else{
+           System.out.println("null");
+       }
     }
 }

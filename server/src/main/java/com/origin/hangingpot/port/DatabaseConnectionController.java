@@ -1,8 +1,11 @@
 package com.origin.hangingpot.port;
 
 import com.origin.hangingpot.domain.DatabaseConnection;
+import com.origin.hangingpot.domain.TableInfo;
+import com.origin.hangingpot.domain.error.Error;
 import com.origin.hangingpot.domain.success.Ok;
 import com.origin.hangingpot.infrastructure.repository.DatabaseConnectionRepository;
+import com.origin.hangingpot.infrastructure.util.DBUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
@@ -11,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @Author: YourName
@@ -52,6 +56,22 @@ public class DatabaseConnectionController {
     @PutMapping("/api/db/update")
     void update(@Valid @RequestBody DatabaseConnection databaseConnection) {
         databaseConnectionRepository.save(databaseConnection);
+    }
+
+    /**
+     * 根据数据源id以及表名获取表信息
+     */
+    @GetMapping("/api/db/meta")
+    Ok<TableInfo> meta(@RequestParam Long id, @RequestParam String tableName) {
+        Optional<DatabaseConnection> databaseConnection = databaseConnectionRepository.findById(id);
+        if(databaseConnection.isPresent()){
+            TableInfo metaInfo = DBUtils.getMetaInfo(databaseConnection.get(), tableName);
+            return Ok.of(metaInfo);
+        }else{
+            return null;
+        }
+
+
     }
 
 }

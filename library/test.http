@@ -32,7 +32,7 @@ Authorization: {{authToken}}
 
 ### search books
 
-GET {{baseUrl}}/api/books?name=&mine=true&pageNum=1&pageSize=5 HTTP/1.1
+GET {{baseUrl}}/api/books?name=&mine=false&pageNum=1&pageSize=5 HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: {{authToken}}
 

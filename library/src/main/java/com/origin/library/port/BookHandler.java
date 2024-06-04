@@ -32,10 +32,9 @@ public class BookHandler {
 
 		// FIXME: The code for calculating offset should be encapsulated
 		// as a method of SearchBooksQuery
-		int offset = (query.getPageNum() - 1) * query.getPageSize();
-		int limit = query.getPageSize();
 
-		Page<Book> pagedBooks = bookRepository.searchBooks(query.getName(), offset, limit);
+		Page<Book> pagedBooks = bookRepository.searchBooksLambda(query.getName(),
+				query.getPageNum(), query.getPageSize());
 		SearchBooksResponse response = SearchBooksResponse.of(pagedBooks)
 				.getUserView(user);
 

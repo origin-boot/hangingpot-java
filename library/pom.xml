@@ -94,7 +94,6 @@
 	<build>
 		<plugins>
             <!-- Delete the application.properties file in the jar package
-	        -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -105,6 +104,7 @@
                     </excludes>
                 </configuration>
             </plugin>
+	        -->
 	        <!-- DOT NOT REMOVE THIS COMMENT, FOR FIXING ./mvnw install ERROR
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

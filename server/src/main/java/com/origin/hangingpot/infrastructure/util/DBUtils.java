@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,7 +111,7 @@ public class DBUtils {
     /**
      * 批量插入代码
      */
-    public String assembleSQL(String srcSql, Connection conn, String[] destFields, String[] srcField,String destTable,String[] updateFields,String destTableKey) throws SQLException {
+    public String assembleSQL(String srcSql, Connection conn, String[] destFields, String[] srcField, String destTable, String[] updateFields, String destTableKey) throws SQLException {
         String uniqueName = "任务名称";
 
         //默认的srcFields数组与destFields相同

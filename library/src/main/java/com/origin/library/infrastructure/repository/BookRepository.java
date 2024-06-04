@@ -40,8 +40,7 @@ public interface BookRepository
 			}
 		};
 
-		org.springframework.data.domain.Page<Book> pagedBooks = findAll(spec, PageUtil.pageable(pageNumber, pageSize));
-		return new Page<Book>(pagedBooks.getContent(), pagedBooks.getTotalElements());
+		return Page.of(findAll(spec, PageUtil.pageable(pageNumber, pageSize)));
 	}
 
 	default Page<Book> searchBooksLambda(String keyword, int pageNumber, int pageSize) {
@@ -49,8 +48,7 @@ public interface BookRepository
 				keyword != null && !keyword.isEmpty(),
 				w -> w.like("name", "%" + keyword + "%"));
 		Specification<Book> spec = new SelectDataset().where(where).orderByAsc("id").build();
-		org.springframework.data.domain.Page<Book> pagedBooks = findAll(spec, PageUtil.pageable(pageNumber, pageSize));
-		return new Page<Book>(pagedBooks.getContent(), pagedBooks.getTotalElements());
+		return Page.of(findAll(spec, PageUtil.pageable(pageNumber, pageSize)));
 	}
 }
 

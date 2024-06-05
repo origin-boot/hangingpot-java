@@ -74,6 +74,21 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>5.1.0</version>
+			<classifier>jakarta</classifier>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<classifier>jakarta</classifier>
+			<version>5.1.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
@@ -96,24 +111,32 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!--druid数据源-->
+
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
 			<version>1.1.16</version>
 		</dependency>
+
 		<dependency>
 			<groupId>cn.hutool</groupId>
 			<artifactId>hutool-all</artifactId>
 			<version>5.8.10</version>
 			<scope>provided</scope>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>
-			<!-- Delete the application.properties file in the jar package WHEN using docker
-			-->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<!-- Delete the application.properties file in the jar package
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -124,13 +147,13 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<!-- DOT NOT REMOVE THIS COMMENT, FOR FIXING ./mvnw install ERROR
-				REMOVE THIS WHEN USING DOCKER
 	        -->
+			<!-- DOT NOT REMOVE THIS COMMENT, FOR FIXING ./mvnw install ERROR
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+	        -->
 		</plugins>
 	</build>
 </project>

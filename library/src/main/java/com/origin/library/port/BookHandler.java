@@ -29,13 +29,7 @@ public class BookHandler {
 	}
 
 	public SearchBooksResponse searchBooks(User user, SearchBooksQuery query) {
-
-		// FIXME: The code for calculating offset should be encapsulated
-		// as a method of SearchBooksQuery
-		int offset = (query.getPageNum() - 1) * query.getPageSize();
-		int limit = query.getPageSize();
-
-		Page<Book> pagedBooks = bookRepository.searchBooks(query.getName(), offset, limit);
+		Page<Book> pagedBooks = bookRepository.searchBooks(query.getName(), query.getPageNum(), query.getPageSize());
 		SearchBooksResponse response = SearchBooksResponse.of(pagedBooks)
 				.getUserView(user);
 
@@ -43,11 +37,8 @@ public class BookHandler {
 	}
 
 	public SearchBooksResponse searchMyBooks(User user, SearchBooksQuery query) {
-
-		int offset = (query.getPageNum() - 1) * query.getPageSize();
-		int limit = query.getPageSize();
-
-		Page<Borrow> pagedBorrows = borrowRepository.searchMyBorrows(user.getId(), query.getName(), offset, limit);
+		Page<Borrow> pagedBorrows = borrowRepository.searchMyBorrows(user.getId(), query.getName(),
+				query.getPageNum(), query.getPageSize());
 		SearchBooksResponse response = SearchBooksResponse.ofPagedBorrows(pagedBorrows)
 				.getUserView(user);
 

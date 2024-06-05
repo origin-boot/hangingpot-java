@@ -43,4 +43,16 @@ public interface ShortcutExecutor {
 	default Pageable pageable(int pageNumber, int pageSize) {
 		return pageable(null, pageNumber, pageSize);
 	}
+
+	default Sort asc(String... properties) {
+		return Sort.by(properties);
+	}
+
+	default Sort desc(String... properties) {
+		return Sort.by(Sort.Direction.DESC, properties);
+	}
+
+	default ShortcutPredicateBuilder predicate() {
+		return new ShortcutPredicateBuilder();
+	}
 }

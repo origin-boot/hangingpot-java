@@ -9,8 +9,8 @@ import com.origin.library.domain.Borrow;
 import com.origin.library.domain.Page;
 import com.origin.library.domain.QBook;
 import com.origin.library.domain.QBorrow;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.Predicate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -33,13 +33,10 @@ class AdvancedBorrowRepositoryImpl implements AdvancedBorrowRepository, Shortcut
 		QBorrow a = QBorrow.borrow;
 		QBook b = QBook.book;
 
-		BooleanBuilder q = new BooleanBuilder();
-		if (userId > 0) {
-			q.and(a.userId.eq(userId));
-		}
-		if (isNotBlank(keyword)) {
-			q.and(b.name.likeIgnoreCase(quoteLike(keyword)));
-		}
+		Predicate q = predicate()
+				.and(userId > 0, a.userId.eq(userId))
+				.and(isNotBlank(keyword), b.name.like(quoteLike(keyword)))
+				.build();
 
 		List<Borrow> borrows = new JPAQuery<>(em).select(a)
 				.from(a)

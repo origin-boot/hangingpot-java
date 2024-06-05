@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -121,31 +122,25 @@ public class DBUtils {
     }
 
     /**
+     * 根据 sync_time 开始和结束来生成对应查询sql
+     */
+    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime) {
+        StringBuilder sql = new StringBuilder("select *");
+        sql.append(" from ").append(tableName).append(" where ");
+
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s'");
+        return String.format(sql.toString(),startTime,endTime);
+    }
+    /**
      * 批量插入代码
      */
-    public static String assembleSQL(String srcSql, Connection conn,  String destTable, String[] updateFields, String destTableKey) throws SQLException {
+    public static String assembleSQL(String srcSql, Connection conn,  String destTable,  String destTableKey) throws SQLException {
         String uniqueName = "123";
 
         //默认的srcFields数组与destFields相同
         String[] srcFields = new String[0];
         String[] destFields = new String[0];
         //Todo 字段映射
-
-        //条数
-        // 假设srcSql已经被修改为包含 COUNT 函数的查询
-        String countSql = "SELECT COUNT(*) AS total FROM orders";
-        try (PreparedStatement pst = conn.prepareStatement(countSql)) {
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) { // 如果查询结果存在（对于COUNT来说，通常至少有一行）
-                int totalCount = rs.getInt("total"); // 获取列名为"total"的值，也可以使用 rs.getInt(1) 来获取第一列的值
-                System.out.println("总条数: " + totalCount);
-            }
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
         PreparedStatement pst = conn.prepareStatement(srcSql);
         ResultSet rs = pst.executeQuery();
         rs.setFetchSize(100);
@@ -154,12 +149,15 @@ public class DBUtils {
         int columnCount = rs.getMetaData().getColumnCount();
         srcFields = new String[columnCount];
         destFields = new String[columnCount];
+        String[] updateFields = new String[columnCount];
 
         for (int i = 1; i <= columnCount; i++) {
             srcFields[i - 1] = rs.getMetaData().getColumnName(i);
             destFields[i - 1] = rs.getMetaData().getColumnName(i);
+
         }
 
+        updateFields = Arrays.stream(srcFields).filter(s -> !s.equals(destTableKey)).toArray(String[]::new);
 
         StringBuilder sql = new StringBuilder();
         sql.append("insert into ").append(destTable).append(" (").append(String.join(",",destFields)).append(") values ");
@@ -196,20 +194,6 @@ public class DBUtils {
 
 
         }
-//        if (count > 0) {
-//            sql = sql.deleteCharAt(sql.length() - 1);
-//
-//            if (!StringUtils.isEmpty(destTableKey)) {
-//                sql.append(" on duplicate key update ");
-//                for (int index = 0; index < updateFields.length; index++) {
-//                    sql.append(updateFields[index]).append("= values(").append(updateFields[index]).append(index == (updateFields.length - 1) ? ")" : "),");
-//                }
-//                return new StringBuffer("alter table ").append(destTable).append(" add constraint ").append(uniqueName).append(" unique (").append(destTableKey).append(");").append(sql.toString())
-//                        .append(";alter table ").append(destTable).append(" drop index ").append(uniqueName).toString();
-//            }
-//            return sql.toString();
-//        }
-//        sql = sql.deleteCharAt(sql.length() - 1).append(";");
         return sql.toString();
     }
 

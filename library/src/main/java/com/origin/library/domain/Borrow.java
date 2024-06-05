@@ -32,7 +32,7 @@ public class Borrow {
 	private long createTime;
 
 	// FIXME: replace with lazy loading
-	@OneToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "book_id", insertable = false, updatable = false)
 	private Book book;
 }

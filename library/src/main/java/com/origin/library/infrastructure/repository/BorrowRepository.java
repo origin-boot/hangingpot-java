@@ -1,76 +1,64 @@
 package com.origin.library.infrastructure.repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.origin.library.domain.Borrow;
-import com.origin.library.domain.Book;
 import com.origin.library.domain.Page;
+import com.origin.library.domain.QBook;
+import com.origin.library.domain.QBorrow;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.PersistenceContext;
 
 interface AdvancedBorrowRepository {
 	Page<Borrow> searchMyBorrows(long userId, String keyword, int offset, int limit);
 }
 
 public interface BorrowRepository extends JpaRepository<Borrow, Long>, AdvancedBorrowRepository {
+
 }
 
 @Service
-class AdvancedBorrowRepositoryImpl implements AdvancedBorrowRepository {
-	@Autowired
+class AdvancedBorrowRepositoryImpl implements AdvancedBorrowRepository, ShortcutExecutor {
+	@PersistenceContext
 	private EntityManager em;
 
 	@Override
-	public Page<Borrow> searchMyBorrows(long userId, String keyword, int offset, int limit) {
-		CriteriaBuilder cb = em.getCriteriaBuilder();
+	public Page<Borrow> searchMyBorrows(long userId, String keyword, int pageNumber, int pageSize) {
+		QBorrow a = QBorrow.borrow;
+		QBook b = QBook.book;
 
-		CriteriaQuery<Borrow> q = cb.createQuery(Borrow.class);
-		Root<Borrow> a = q.from(Borrow.class);
-		Join<Borrow, Book> b = a.join("book", JoinType.INNER);
-
-		Predicate[] w = searchBorrowsPredicates(cb, a, b, userId, keyword);
-		q = q.select(a)
-				.where(w)
-				.orderBy(cb.desc(a.get("id")));
-
-		List<Borrow> Borrows = em.createQuery(q)
-				.setFirstResult(offset)
-				.setMaxResults(limit)
-				.getResultList();
-
-		// FIXME: too many copies
-		CriteriaQuery<Long> q2 = cb.createQuery(Long.class);
-		Root<Borrow> a2 = q2.from(Borrow.class);
-		Join<Borrow, Book> b2 = a2.join("book", JoinType.INNER);
-		Predicate[] w2 = searchBorrowsPredicates(cb, a2, b2, userId, keyword);
-		q2 = q2.select(cb.count(a2))
-				.where(w2);
-		long count = em.createQuery(q2).getSingleResult();
-
-		return new Page<Borrow>(Borrows, count);
-	}
-
-	Predicate[] searchBorrowsPredicates(CriteriaBuilder cb, Root<Borrow> a, Join<Borrow, Book> b,
-			long userId, String keyword) {
-
-		List<Predicate> predicates = new ArrayList<>();
+		BooleanBuilder q = new BooleanBuilder();
 		if (userId > 0) {
-			predicates.add(cb.equal(a.get("userId"), userId));
+			q.and(a.userId.eq(userId));
 		}
-		if (keyword != null && !keyword.isEmpty()) {
-			predicates.add(cb.like(b.get("name"), "%" + keyword + "%"));
+		if (isNotBlank(keyword)) {
+			q.and(b.name.likeIgnoreCase(quoteLike(keyword)));
 		}
-		return predicates.toArray(new Predicate[predicates.size()]);
+
+		List<Borrow> borrows = new JPAQuery<>(em).select(a)
+				.from(a)
+				.join(b)
+				.on(a.bookId.eq(b.id))
+				.where(q)
+				.orderBy(a.id.desc())
+				.offset((pageNumber - 1) * pageSize)
+				.limit(pageSize)
+				.fetch();
+
+		@SuppressWarnings("deprecation")
+		long total = new JPAQuery<>(em).select(a.id.count())
+				.from(a)
+				.join(b)
+				.on(a.bookId.eq(b.id))
+				.where(q)
+				.fetchCount();
+
+		return new Page<Borrow>(borrows, total);
 	}
 }

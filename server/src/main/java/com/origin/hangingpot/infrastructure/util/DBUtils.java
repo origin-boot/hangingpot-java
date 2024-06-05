@@ -26,6 +26,8 @@ import java.util.Map;
 
 public class DBUtils {
 
+    private static final String SelectOne = "select * from %s limit 1";
+
     /**
      * 获取插入数据的sql
      *
@@ -121,36 +123,53 @@ public class DBUtils {
     /**
      * 批量插入代码
      */
-    public String assembleSQL(String srcSql, Connection conn, String[] destFields, String[] srcField, String destTable, String[] updateFields, String destTableKey) throws SQLException {
-        String uniqueName = "任务名称";
+    public static String assembleSQL(String srcSql, Connection conn,  String destTable, String[] updateFields, String destTableKey) throws SQLException {
+        String uniqueName = "123";
 
         //默认的srcFields数组与destFields相同
-        String[] srcFields = destFields;
+        String[] srcFields = new String[0];
+        String[] destFields = new String[0];
         //Todo 字段映射
 
         //条数
         // 假设srcSql已经被修改为包含 COUNT 函数的查询
-        String countSql = "SELECT COUNT(*) AS total FROM t_order_1";
+        String countSql = "SELECT COUNT(*) AS total FROM orders";
         try (PreparedStatement pst = conn.prepareStatement(countSql)) {
             ResultSet rs = pst.executeQuery();
             if (rs.next()) { // 如果查询结果存在（对于COUNT来说，通常至少有一行）
                 int totalCount = rs.getInt("total"); // 获取列名为"total"的值，也可以使用 rs.getInt(1) 来获取第一列的值
                 System.out.println("总条数: " + totalCount);
             }
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         PreparedStatement pst = conn.prepareStatement(srcSql);
         ResultSet rs = pst.executeQuery();
         rs.setFetchSize(100);
+
+        //获取表列数
+        int columnCount = rs.getMetaData().getColumnCount();
+        srcFields = new String[columnCount];
+        destFields = new String[columnCount];
+
+        for (int i = 1; i <= columnCount; i++) {
+            srcFields[i - 1] = rs.getMetaData().getColumnName(i);
+            destFields[i - 1] = rs.getMetaData().getColumnName(i);
+        }
+
+
         StringBuilder sql = new StringBuilder();
-        sql.append("insert into ").append(destTable).append(" (").append(destFields).append(") values ");
+        sql.append("insert into ").append(destTable).append(" (").append(String.join(",",destFields)).append(") values ");
         long count = 0;
+
 
         while (rs.next()) {
             sql.append("(");
             for (int index = 0; index < destFields.length; index++) {
-                Object fieldValue = destFields[index].trim(); //Todo 待实现字段映射
+                Object fieldValue = rs.getObject(destFields[index].trim()); //Todo 待实现字段映射
                 if (fieldValue == null) {
                     sql.append(fieldValue).append(index == (destFields.length - 1) ? "" : ",");
                 } else {
@@ -166,19 +185,30 @@ public class DBUtils {
         if (pst != null) {
             pst.close();
         }
-        if (count > 0) {
+        if(count > 0){
+            //去掉末尾逗号
             sql = sql.deleteCharAt(sql.length() - 1);
-
-            if (!StringUtils.isEmpty(destTableKey)) {
-                sql.append(" on duplicate key update ");
-                for (int index = 0; index < updateFields.length; index++) {
-                    sql.append(updateFields[index]).append("= values(").append(updateFields[index]).append(index == (updateFields.length - 1) ? ")" : "),");
-                }
-                return new StringBuffer("alter table ").append(destTable).append(" add constraint ").append(uniqueName).append(" unique (").append(destTableKey).append(");").append(sql.toString())
-                        .append(";alter table ").append(destTable).append(" drop index ").append(uniqueName).toString();
+            //加入主键冲突处理  -》更新
+            sql.append(" on duplicate key update ");
+            for (int index = 0; index < updateFields.length; index++) {
+                sql.append(updateFields[index]).append("= values(").append(updateFields[index]).append(index == (updateFields.length - 1) ? ")" : "),");
             }
-            return sql.toString();
+
+
         }
+//        if (count > 0) {
+//            sql = sql.deleteCharAt(sql.length() - 1);
+//
+//            if (!StringUtils.isEmpty(destTableKey)) {
+//                sql.append(" on duplicate key update ");
+//                for (int index = 0; index < updateFields.length; index++) {
+//                    sql.append(updateFields[index]).append("= values(").append(updateFields[index]).append(index == (updateFields.length - 1) ? ")" : "),");
+//                }
+//                return new StringBuffer("alter table ").append(destTable).append(" add constraint ").append(uniqueName).append(" unique (").append(destTableKey).append(");").append(sql.toString())
+//                        .append(";alter table ").append(destTable).append(" drop index ").append(uniqueName).toString();
+//            }
+//            return sql.toString();
+//        }
 //        sql = sql.deleteCharAt(sql.length() - 1).append(";");
         return sql.toString();
     }
@@ -195,7 +225,7 @@ public class DBUtils {
         DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
         TableInfo tableInfo = new TableInfo();
         try (Connection root = mysql.getConnection();) {
-            PreparedStatement preparedStatement = root.prepareStatement("select * from "+tableName);
+            PreparedStatement preparedStatement = root.prepareStatement(String.format(SelectOne, tableName));
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.setFetchSize(1000);
             int columnCount = resultSet.getMetaData().getColumnCount();

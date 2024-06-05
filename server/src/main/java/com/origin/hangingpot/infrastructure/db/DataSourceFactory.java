@@ -20,7 +20,7 @@ public class DataSourceFactory {
         dataSourceMap = new HashMap<>();
     }
     public static DruidDataSource getDruidDataSource(String dbType, BaseDBInfo baseDBInfo){
-        //不包含指定类型的数据源
+        //根据id查询是否在map中
         if (!dataSourceMap.containsKey(dbType)){
             DruidDataSource dataSource = new DruidDataSource();
             dataSource.setUrl(baseDBInfo.getUrl());

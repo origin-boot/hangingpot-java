@@ -144,7 +144,6 @@ public class DBUtils {
         PreparedStatement pst = conn.prepareStatement(srcSql);
         ResultSet rs = pst.executeQuery();
         rs.setFetchSize(100);
-
         //获取表列数
         int columnCount = rs.getMetaData().getColumnCount();
         srcFields = new String[columnCount];

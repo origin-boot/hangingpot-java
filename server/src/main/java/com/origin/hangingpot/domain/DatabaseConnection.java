@@ -80,4 +80,17 @@ public class DatabaseConnection {
     @Column(name = "update_time", nullable = false)
     private Instant updateTime;
 
+
+    /**
+     * 获取BaseDBInfo
+     *
+     */
+    public BaseDBInfo getBaseDbInfo(){
+        BaseDBInfo baseDBInfo = new BaseDBInfo();
+        baseDBInfo.setUsername(username);
+        baseDBInfo.setPassword(password);
+        baseDBInfo.setUrl(url);
+        baseDBInfo.setDriver(driver);
+        return baseDBInfo;
+    }
 }

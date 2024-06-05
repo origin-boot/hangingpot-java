@@ -8,4 +8,6 @@ package com.origin.hangingpot.domain.constants;
 
 public class TableConstants {
     public static final String MAIN_TABLE = "mib_base_mr_adinfomation";
+    public static final String CONDITION_COL ="jssj";
+    public static final String TabkeKey = "OriginalID";
 }

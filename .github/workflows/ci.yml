@@ -45,6 +45,9 @@ jobs:
     - name: Build with Maven
       run: cd server && mvn clean package -DskipTests -Dmaven.javadoc.skip=true -B -V
 
-    - name: Run Java Service
-      run: cd server && java -jar target/hangingpot-0.0.1-SNAPSHOT.jar --spring.config.location=file:config/ci.properties
+    - name: Run Maven Test
+      run: cd server && mvn test -Dspring.config.location=file:config/ci.properties
+
+    - name: Run Java App
+      run: bash .github/workflows/run_java_app.sh
 

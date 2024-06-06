@@ -19,6 +19,6 @@ public class SyncTest {
 
     @Test
     void TestSync(){
-        syncContext.SyncData(1L,2L,"2024-01-01 00:00:00","2024-01-22 00:00:00","Sync1");
+        syncContext.SyncData(1L,2L,"2024-01-01 00:00:00","2024-06-08 00:00:00","Sync1");
     }
 }

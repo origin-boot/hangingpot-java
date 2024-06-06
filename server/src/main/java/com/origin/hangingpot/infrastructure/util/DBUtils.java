@@ -132,6 +132,16 @@ public class DBUtils {
         return String.format(sql.toString(),startTime,endTime);
     }
     /**
+     * 根据 sync_time 开始和结束来生成对应查询sql，只要OriginalID
+     */
+    public static String getSelectOnlyIdSql(String tableName, String conditionCol,String startTime, String endTime) {
+        StringBuilder sql = new StringBuilder("select OriginalID");
+        sql.append(" from ").append(tableName).append(" where ");
+
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s'");
+        return String.format(sql.toString(),startTime,endTime);
+    }
+    /**
      * 批量插入代码
      */
     public static String assembleSQL(String srcSql, Connection conn,  String destTable,  String destTableKey) throws SQLException {
@@ -193,6 +203,9 @@ public class DBUtils {
 
 
         }
+        if(count == 0){
+            return null;
+        }
         return sql.toString();
     }
 
@@ -233,5 +246,7 @@ public class DBUtils {
         return tableInfo;
 
     }
+
+
 
 }

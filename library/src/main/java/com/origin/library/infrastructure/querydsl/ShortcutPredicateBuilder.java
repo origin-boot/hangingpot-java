@@ -115,7 +115,7 @@ public class ShortcutPredicateBuilder {
 		if (b.length == 0) {
 			return this;
 		}
-		q.or(new BooleanBuilder().orAllOf(b));
+		q.orAllOf(b);
 		return this;
 	}
 

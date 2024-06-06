@@ -124,8 +124,28 @@ public class DBUtils {
     /**
      * 根据 sync_time 开始和结束来生成对应查询sql
      */
-    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime) {
+    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime,Long nowCount) {
         StringBuilder sql = new StringBuilder("select *");
+        sql.append(" from ").append(tableName).append(" where ");
+
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s' limit ").append(nowCount*100000).append(",100000");
+        return String.format(sql.toString(),startTime,endTime);
+    }
+    /**
+     * 根据 sync_time 开始和结束来生成查询总数量sql
+     */
+    public static String getCountSql(String tableName, String conditionCol,String startTime, String endTime) {
+        StringBuilder sql = new StringBuilder("select count(*)");
+        sql.append(" from ").append(tableName).append(" where ");
+
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s'");
+        return String.format(sql.toString(),startTime,endTime);
+    }
+    /**
+     * 根据 sync_time 开始和结束来生成对应查询sql，只要OriginalID
+     */
+    public static String getSelectOnlyIdSql(String tableName, String conditionCol,String startTime, String endTime) {
+        StringBuilder sql = new StringBuilder("select OriginalID");
         sql.append(" from ").append(tableName).append(" where ");
 
         sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s'");
@@ -193,6 +213,9 @@ public class DBUtils {
 
 
         }
+        if(count == 0){
+            return null;
+        }
         return sql.toString();
     }
 
@@ -233,5 +256,7 @@ public class DBUtils {
         return tableInfo;
 
     }
+
+
 
 }

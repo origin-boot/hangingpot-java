@@ -53,7 +53,7 @@ public class SqlUtilsTest {
             DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
             String[] strings = {"id", "phone", "className", "classId"};
 
-            String testSql = DBUtils.getSelectSql(TableConstants.MAIN_TABLE,"jssj","2024-01-04 00:00:00","2024-01-08 00:00:00");
+            String testSql = DBUtils.getSelectSql(TableConstants.MAIN_TABLE,"jssj","2024-01-04 00:00:00","2024-01-08 00:00:00",100000L);
             String assembleSQL = DBUtils.assembleSQL(String.format(testSql,TableConstants.MAIN_TABLE), mysql.getConnection(),  TableConstants.MAIN_TABLE, "OriginalID");
             System.out.println(assembleSQL);
         }else{

@@ -1,4 +1,4 @@
-package com.origin.library.infrastructure.repository;
+package com.origin.library.infrastructure.querydsl;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.origin.hangingpot.domain.Page;
 import com.origin.hangingpot.domain.User;
 import com.origin.hangingpot.domain.error.UserNotFoundError;
 import com.origin.hangingpot.domain.error.UsernameOrPasswordError;
@@ -33,6 +34,13 @@ public class UserController extends BaseController {
 		if (!user.isMatchPassword(command.getPassword())) {
 			throw new UsernameOrPasswordError().setDetails("username: " + command.getUsername());
 		}
+
+		Page<User> r1 = userRepository.searchUsers("user", 0, 2);
+		Page<User> r2 = userRepository.searchUsers("user1", 2);
+
+		// FIXME: remove the testing code
+		System.out.println("login r1: " + r1.toString());
+		System.out.println("login r2: " + r2.toString());
 
 		UserResource response = UserResource.of(user);
 		identityHandlerInterceptor.save(httpServletResponse, String.valueOf(user.getId()));

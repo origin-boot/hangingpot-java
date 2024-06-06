@@ -1,4 +1,4 @@
-package com.origin.library.infrastructure.repository;
+package com.origin.library.infrastructure.querydsl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;

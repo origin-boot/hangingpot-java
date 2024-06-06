@@ -1,0 +1,53 @@
+name: Maven Build and Run Java Test
+
+on:
+  push:
+    branches:
+      - main
+      - feat-ci
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: hangingpot
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up MySQL
+      run: |
+        sleep 10
+        mysql --host 127.0.0.1 --port 3306 -uroot hangingpot < server/migrations/mysql_schema.sql
+
+    - name: Verify DB exists
+      run: mysql --host 127.0.0.1 --port 3306 -uroot -e "SHOW DATABASES LIKE 'hangingpot'"
+
+    - name: Verify tables exists
+      run: mysql --host 127.0.0.1 --port 3306 -uroot hangingpot -e "SHOW TABLES"
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        check-latest: true
+
+    - name: Build with Maven
+      run: cd server && mvn clean package -DskipTests -Dmaven.javadoc.skip=true -B -V
+
+    - name: Run Maven Test
+      run: cd server && mvn test -Dspring.config.location=file:config/ci.properties
+
+    - name: Run Java App
+      run: bash .github/workflows/run_java_app.sh
+

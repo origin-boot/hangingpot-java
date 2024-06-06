@@ -14,6 +14,10 @@ public class Page<T> {
 		this.records = records;
 	}
 
+	public static <T> Page<T> empty() {
+		return new Page<T>(List.of(), 0);
+	}
+
 	public static <T> Page<T> of(org.springframework.data.domain.Page<T> page) {
 		return new Page<T>(page.getContent(), page.getTotalElements());
 	}

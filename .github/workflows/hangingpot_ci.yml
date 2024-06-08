@@ -7,7 +7,7 @@ on:
       - feat-ci
 
 jobs:
-  build-and-run:
+  hangingpot-test:
     runs-on: ubuntu-latest
 
     services:
@@ -49,5 +49,5 @@ jobs:
       run: cd server && mvn test -Dspring.config.location=file:config/ci.properties
 
     - name: Run Java App
-      run: bash .github/workflows/run_java_app.sh
+      run: .github/workflows/run_java_app.sh -m server -p hangingpot
 

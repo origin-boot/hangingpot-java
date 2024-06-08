@@ -1,4 +1,4 @@
-name: Maven Build and Run Java Test
+name: Maven Build and Run Java Test for Hangingpot
 
 on:
   push:

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat-ci
+      - feat-library
 
 jobs:
   library-test:

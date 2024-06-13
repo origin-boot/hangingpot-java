@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Proxy;
 
 // FIXME: Use the generic User<T> to be compatible with users whose id is String
 // And the basic User implementation should be an abstract class
 @Entity
 @Table(name = "users")
+@Proxy(lazy=false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

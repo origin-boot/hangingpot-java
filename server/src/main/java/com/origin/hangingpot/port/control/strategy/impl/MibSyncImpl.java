@@ -17,6 +17,7 @@ import org.springframework.util.StopWatch;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +58,14 @@ public class MibSyncImpl implements SyncStrategy {
             DatabaseConnection destDc = dest.get();
             DruidDataSource sourceDruid = DataSourceFactory.getDruidDataSource(String.valueOf(sourceDc.getId()), sourceDc.getBaseDbInfo());
             DruidDataSource destDruid = DataSourceFactory.getDruidDataSource(String.valueOf(destDc.getId()), destDc.getBaseDbInfo());
+
+//            try {
+//                sourceDruid.init();
+//                destDruid.init();
+//            } catch (SQLException e) {
+//
+//                e.printStackTrace();
+//            }
             //先查询总条数
             try (DruidPooledConnection connection = sourceDruid.getConnection()) {
                 String countSql = DBUtils.getCountSql(TableConstants.MAIN_TABLE, TableConstants.CONDITION_COL, startTime, endTime);
@@ -69,7 +78,10 @@ public class MibSyncImpl implements SyncStrategy {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            if(totalCount == 0){
+                log.info("无数据！");
+                return;
+            }
 
             int batchCount;
             //向下取整

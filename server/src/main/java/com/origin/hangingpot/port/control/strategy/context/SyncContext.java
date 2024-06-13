@@ -4,6 +4,8 @@ import com.origin.hangingpot.port.control.strategy.factory.SyncFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
+
 /**
  * @Author: YourName
  * @Date: 2024/6/5 18:00
@@ -13,6 +15,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SyncContext {
     public void SyncData(Long sourceId, Long destId, String startTime, String endTime,String type){
-        SyncFactory.getSyncStrategy(type).SyncData(sourceId,destId,startTime,endTime);
+        try {
+            SyncFactory.getSyncStrategy(type).SyncData(sourceId,destId,startTime,endTime);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

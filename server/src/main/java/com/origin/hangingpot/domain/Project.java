@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Proxy;
 
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
+@Proxy(lazy=false)
 @Table(name = "project")
 public class Project {
     @Id

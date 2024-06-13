@@ -11,17 +11,17 @@ public abstract class SchedulingBackgroundTask {
 
 	abstract protected void readBackgroundTask();
 
-	@Scheduled(cron = "0 * * * * ?")
-	public void generateBackgroundTaskCron() {
-		logger.info("generating background task");
-		generateBackgroundTask();
-	}
+//	@Scheduled(cron = "0 * * * * ?")
+//	public void generateBackgroundTaskCron() {
+//		logger.info("generating background task");
+//		generateBackgroundTask();
+//	}
 
 	// @Scheduled(cron = "0 * * * * ?")
-	@Scheduled(cron = "*/5 * * * * ?")
-	public void readBackgroundTaskCron() {
-		logger.info("reading background task");
-		readBackgroundTask();
-	}
+//	@Scheduled(cron = "*/5 * * * * ?")
+//	public void readBackgroundTaskCron() {
+//		logger.info("reading background task");
+//		readBackgroundTask();
+//	}
 
 }

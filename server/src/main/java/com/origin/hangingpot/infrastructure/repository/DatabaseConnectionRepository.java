@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DatabaseConnectionRepository extends JpaRepository<DatabaseConnection, Long> {
     /**
@@ -20,5 +21,6 @@ public interface DatabaseConnectionRepository extends JpaRepository<DatabaseConn
 
     List<DatabaseConnection> findByProjectIdAndSourceType(Long projectId, String sourceType);
 
+    Optional<DatabaseConnection> findBySourceTypeAndProjectId(String sourceType, Long projectId);
 
 }

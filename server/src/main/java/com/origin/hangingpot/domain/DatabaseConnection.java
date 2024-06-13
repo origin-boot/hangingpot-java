@@ -1,5 +1,6 @@
 package com.origin.hangingpot.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -72,19 +73,30 @@ public class DatabaseConnection {
     @Column(name = "password", nullable = false, length = 200)
     private String password;
 
-    @NotNull
-    @Column(name = "create_time", nullable = false)
+
+    @Column(name = "create_time")
     private Instant createTime;
 
-    @NotNull
-    @Column(name = "update_time", nullable = false)
+
+    @Column(name = "update_time")
     private Instant updateTime;
 
+
+    @Column(name = "project_id")
+    private Long projectId;
+
+    @Lob
+    @NotNull
+    @Column(name = "source_type",nullable = false)
+    private String sourceType;
+
+    private String projectName;
 
     /**
      * 获取BaseDBInfo
      *
      */
+    @JsonIgnore
     public BaseDBInfo getBaseDbInfo(){
         BaseDBInfo baseDBInfo = new BaseDBInfo();
         baseDBInfo.setUsername(username);

@@ -18,4 +18,7 @@ public interface DatabaseConnectionRepository extends JpaRepository<DatabaseConn
     @Override
     List<DatabaseConnection> findAll();
 
+    List<DatabaseConnection> findByProjectIdAndSourceType(Long projectId, String sourceType);
+
+
 }

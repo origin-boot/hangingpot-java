@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class MibSyncImpl implements SyncStrategy {
     final DatabaseConnectionRepository dcRepository;
-    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private  ExecutorService executorService = Executors.newFixedThreadPool(10);
     private Long MAX_COUNT = 100000L;
     /**
      * 根据源头端、目标端ID以及时间范围进行同步
@@ -162,15 +162,15 @@ public class MibSyncImpl implements SyncStrategy {
 
 
             });
-            executorService.shutdown();
-
-            while (true) {
-                if (executorService.isTerminated()) {
-                    stopWatch.stop();
-                    log.info("同步完成，耗时：" + stopWatch.getTotalTimeSeconds());
-                    break;
-                }
-            }
+//            executorService.shutdown();
+//
+//            while (true) {
+//                if (executorService.isTerminated()) {
+//                    stopWatch.stop();
+//                    log.info("同步完成，耗时：" + stopWatch.getTotalTimeSeconds());
+//                    break;
+//                }
+//            }
 
 
         }

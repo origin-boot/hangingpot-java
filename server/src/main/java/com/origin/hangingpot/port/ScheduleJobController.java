@@ -1,11 +1,14 @@
 package com.origin.hangingpot.port;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.origin.hangingpot.domain.ScheduleJob;
 import com.origin.hangingpot.domain.success.Ok;
 import com.origin.hangingpot.infrastructure.repository.ScheduleJobRepository;
+import com.origin.hangingpot.port.control.CronTaskRegistrar;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +23,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ScheduleJobController {
     final ScheduleJobRepository scheduleJobRepository;
+
+    final AsyncEventBus asyncEventBus;
+    final CronTaskRegistrar cronTaskRegistrar;
+
 
 
     /**
@@ -36,6 +43,11 @@ public class ScheduleJobController {
      */
     @PostMapping
     public void add(@Valid @RequestBody ScheduleJob job) {
+        //查询数据库是否有projectId相同的任务
+        scheduleJobRepository.findByProject_Id(job.getProject().getId()).ifPresent(j -> {
+            throw new IllegalArgumentException("项目已存在定时任务");
+        });
+        asyncEventBus.post(job);
         scheduleJobRepository.save(job);
     }
     /**
@@ -43,15 +55,26 @@ public class ScheduleJobController {
      */
     @PatchMapping("/{id}")
     public void update(@PathVariable Long id, @Valid @RequestBody ScheduleJob job) {
+        //查询数据库是否有projectId相同的任务
+        scheduleJobRepository.findByProject_Id(job.getProject().getId()).ifPresent(j -> {
+            throw new IllegalArgumentException("项目已存在定时任务");
+        });
+
         job.setId(id);
         scheduleJobRepository.save(job);
+        asyncEventBus.post(job);
     }
     /**
      * DELETE /api/jobs/{id} 删除定时任务
      */
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
+        //查询对应的定时任务
+        ScheduleJob job = scheduleJobRepository.findById(id).orElseThrow();
+        //取消定时任务
+        cronTaskRegistrar.removeTask(job.getId()+job.getJobName());
         scheduleJobRepository.deleteById(id);
+
     }
     /**
      * POST /api/jobs/{id}/run 立即执行定时任务

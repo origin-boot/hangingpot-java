@@ -18,10 +18,13 @@ import org.springframework.util.StopWatch;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @Author: 徐杰
@@ -110,6 +113,7 @@ public class MibSyncImpl implements SyncStrategy {
                 try (DruidPooledConnection connection = destDruid.getConnection()) {
                     PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
                     boolean execute = preparedStatement.execute();
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -135,19 +139,27 @@ public class MibSyncImpl implements SyncStrategy {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            log.info("共计：" + count + "条数据ID");
+            stopWatch.stop();
+
+            log.info("共计：" + count + "条数据"+ "=====》耗时：" + stopWatch.getTotalTimeSeconds() + "秒");
             String selectByIdSql = "select * from %s where OriginalID in " + ids;
 
+            class TableTask implements Callable<String>{
+                private String tableName;
 
-            Arrays.stream(otherTables).forEach(table -> {
-                //并发执行
-                executorService.execute(() -> {
+                public TableTask(String table) {
+                    this.tableName = table;
+                }
 
+                @Override
+                public String call() throws Exception {
+                    StopWatch stopWatch = new StopWatch();
+                    stopWatch.start();
                     try (DruidPooledConnection connection = sourceDruid.getConnection()) {
 
-                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, table), connection, table, TableConstants.TabkeKey);
+                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, tableName), connection, tableName, TableConstants.TabkeKey);
                         if (insertSql1 == null)
-                            return;
+                            return null;
                         try (DruidPooledConnection connection1 = destDruid.getConnection()) {
                             PreparedStatement preparedStatement = connection1.prepareStatement(insertSql1);
                             boolean execute = preparedStatement.execute();
@@ -156,11 +168,27 @@ public class MibSyncImpl implements SyncStrategy {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
+                    }finally {
+                        stopWatch.stop();
+                        return tableName + "同步完成，耗时：" + stopWatch.getTotalTimeSeconds();
                     }
 
-                });
+                }
+            }
+            ArrayList<Future<String>> resultList = new ArrayList<>();
+            Arrays.stream(otherTables).forEach(table -> {
+                //并发执行
+                Future<String> submitted = executorService.submit(new TableTask(table));
+                resultList.add(submitted);
 
-
+            });
+            resultList.forEach(item -> {
+                try {
+                    String s = item.get();
+                    log.info(s);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
 //            executorService.shutdown();
 //

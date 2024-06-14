@@ -1,5 +1,6 @@
 package com.origin.hangingpot.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class User {
 	private String username;
 
 	@Column(name = "password")
+	@JsonIgnore
 	private String password;
 
 	@Column(name = "create_time")

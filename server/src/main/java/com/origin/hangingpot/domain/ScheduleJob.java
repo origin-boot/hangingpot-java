@@ -1,5 +1,6 @@
 package com.origin.hangingpot.domain;
 
+import com.origin.hangingpot.infrastructure.validGroup.Insert;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -21,16 +22,16 @@ public class ScheduleJob {
     private Long id;
 
     @Size(max = 50)
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "job_name", nullable = false, length = 50)
     private String jobName;
 
     @Size(max = 20)
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "cron_expression", nullable = false, length = 20)
     private String cronExpression;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
@@ -39,34 +40,34 @@ public class ScheduleJob {
     @Column(name = "job_desc", length = 500)
     private String jobDesc;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "status", nullable = false)
     private Boolean status = false;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "create_time", nullable = false)
     private Instant createTime;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "update_time", nullable = false)
     private Instant updateTime;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "del_flag", nullable = false)
     private Byte delFlag;
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "map_id", nullable = false)
     private Long mapId;
 
 
-    @NotNull
+    @NotNull(groups = {Insert.class})
     @Column(name = "`range`", nullable = false)
     private Long range;
 

@@ -52,6 +52,9 @@ public class CronTaskRegistrar implements DisposableBean {
         if (Objects.nonNull(scheduledTask)) {
             scheduledTask.cancel();
         }
+        String s = """
+                2131312
+                """;
     }
 
     public ScheduledTask scheduleTask(CronTask cronTask) {

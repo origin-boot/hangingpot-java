@@ -124,11 +124,11 @@ public class DBUtils {
     /**
      * 根据 sync_time 开始和结束来生成对应查询sql
      */
-    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime,Long nowCount) {
+    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime,Long nowCount,Long maxCount) {
         StringBuilder sql = new StringBuilder("select *");
         sql.append(" from ").append(tableName).append(" where ");
 
-        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s' limit ").append(nowCount*100000).append(",100000");
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s' limit ").append(nowCount*maxCount).append(","+maxCount);
         return String.format(sql.toString(),startTime,endTime);
     }
     /**
@@ -160,10 +160,9 @@ public class DBUtils {
         //默认的srcFields数组与destFields相同
         String[] srcFields = new String[0];
         String[] destFields = new String[0];
-        //Todo 字段映射
         PreparedStatement pst = conn.prepareStatement(srcSql);
         ResultSet rs = pst.executeQuery();
-        rs.setFetchSize(100);
+        rs.setFetchSize(1000);
         //获取表列数
         int columnCount = rs.getMetaData().getColumnCount();
         srcFields = new String[columnCount];
@@ -173,7 +172,6 @@ public class DBUtils {
         for (int i = 1; i <= columnCount; i++) {
             srcFields[i - 1] = rs.getMetaData().getColumnName(i);
             destFields[i - 1] = rs.getMetaData().getColumnName(i);
-
         }
 
         updateFields = Arrays.stream(srcFields).filter(s -> !s.equals(destTableKey)).toArray(String[]::new);
@@ -257,6 +255,40 @@ public class DBUtils {
 
     }
 
+
+    /**
+     * 分割insert 为单独的
+     */
+
+    public static String[] splitInsertSql(String insertStatement) {
+        //分割on duplicate key update
+        String[] insertStatementArr = insertStatement.split(" on duplicate key update ");
+        insertStatement = insertStatementArr[0];
+        String onDuplicateKeyUpdate = insertStatementArr[1];
+        //values分割前后
+        insertStatementArr = insertStatement.split(" values ");
+        String head = insertStatementArr[0];
+        String allValues = insertStatementArr[1];
+        // 按逗号分割INSERT语句中的每组值
+        insertStatement = allValues;
+        String[] values = insertStatement.split("\\),\\(");
+        List<String> sqlList = new ArrayList<>();
+        String sql = """
+                %s values %s  on duplicate key update %s
+                """;
+        for (String value : values) {
+            // 如果不是第一组值，添加左括号
+            if (!value.startsWith("(")) {
+                value = "(" + value;
+            }
+            // 如果不是最后一组值，添加右括号
+            if (!value.endsWith(")")) {
+                value = value + ")";
+            }
+            sqlList.add(String.format(sql, head, value, onDuplicateKeyUpdate));
+        }
+        return sqlList.toArray(new String[0]);
+    }
 
 
 }

@@ -1,20 +1,26 @@
 package com.origin.hangingpot.port.control.strategy.impl;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson2.util.DateUtils;
 import com.origin.hangingpot.domain.DatabaseConnection;
 import com.origin.hangingpot.domain.ErrorItem;
 import com.origin.hangingpot.domain.JobLog;
+import com.origin.hangingpot.domain.ProjectMap;
 import com.origin.hangingpot.domain.constants.TableConstants;
 import com.origin.hangingpot.infrastructure.db.DataSourceFactory;
 import com.origin.hangingpot.infrastructure.repository.DatabaseConnectionRepository;
 import com.origin.hangingpot.infrastructure.repository.JobLogRepository;
+import com.origin.hangingpot.infrastructure.repository.ProjectMapRepository;
 import com.origin.hangingpot.infrastructure.util.DBUtils;
 import com.origin.hangingpot.port.control.strategy.SyncStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StopWatch;
 
@@ -39,8 +45,9 @@ import java.util.concurrent.Future;
 public class MibSyncImpl implements SyncStrategy {
     final DatabaseConnectionRepository dcRepository;
     final JobLogRepository jobLogRepository;
+    final ProjectMapRepository projectMapRepository;
     private  ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private Long MAX_COUNT = 1000L;
+    private Long MAX_COUNT = 10000L;
     /**
      * 根据源头端、目标端ID以及时间范围进行同步
      *
@@ -52,15 +59,37 @@ public class MibSyncImpl implements SyncStrategy {
     private String[] otherTables = new String[]{"mib_data_bldinfo", "mib_data_diseinfo", "mib_data_icuinfo", "mib_data_iteminfo", "mib_data_oprninfo", "mib_data_opspdiseinfo", "mib_data_payinfo", "mib_data_setlinfo"};
 
     @Override
-    public void SyncData(Long sourceId, Long destId, String startTime, String endTime) {
+    public void SyncData(Long sourceId, Long destId, String startTime, String endTime,String runType,Long...args) {
         //错误记录列表
         List<ErrorItem> errorItems = new ArrayList<>();
+        //映射
+        if (args.length == 0) {
+            log.error("参数错误！");
+            return;
+        }
+        Long projectId = args[0];
+        //获取项目映射
+        List<ProjectMap> byProjectId = projectMapRepository.findByProject_Id(projectId);
+        //转成map
+        Map<String, Map<String,String>> map = new HashMap<>();
+        byProjectId.forEach(item -> {
+            String fieldName = item.getFieldName();
+            String sourceVal = item.getSourceVal();
+            String targetVal = item.getTargetVal();
+            if(map.containsKey(fieldName)){
+                map.get(fieldName).put(sourceVal,targetVal);
+            }else{
+                Map<String,String> temp = new HashMap<>();
+                temp.put(sourceVal,targetVal);
+                map.put(fieldName,temp);
+            }
+        });
         //日志记录
         JobLog jobLog = new JobLog();
         Double costTime = 0.0;
-        jobLog.setStartTime(DateUtil.parse(startTime).toInstant());
-        jobLog.setFinishTime(DateUtil.parse(endTime).toInstant());
-        jobLog.setScheduleMode("定时任务");
+        jobLog.setStartTime(DateTime.of(startTime, "yyyy-MM-dd HH:mm:ss"));
+        jobLog.setFinishTime(DateTime.of(endTime, "yyyy-MM-dd HH:mm:ss"));
+        jobLog.setScheduleMode(runType);
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         Optional<DatabaseConnection> source = dcRepository.findById(sourceId);
@@ -105,7 +134,7 @@ public class MibSyncImpl implements SyncStrategy {
                 String insertSql = null;
                 try (DruidPooledConnection connection = sourceDruid.getConnection()) {
 
-                    insertSql = DBUtils.assembleSQL(selectSql, connection, TableConstants.MAIN_TABLE, TableConstants.TabkeKey);
+                    insertSql = DBUtils.assembleSQL(selectSql, connection, TableConstants.MAIN_TABLE, TableConstants.TabkeKey,map);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -184,8 +213,10 @@ public class MibSyncImpl implements SyncStrategy {
             costTime += stopWatch.getTotalTimeSeconds();
             class TableTask implements Callable<Map>{
                 private String tableName;
+                private Map<String,Map<String,String>> filedMap;
 
-                public TableTask(String table) {
+                public TableTask(String table,Map<String,Map<String,String>> map) {
+                    this.filedMap = map;
                     this.tableName = table;
                 }
 
@@ -197,7 +228,7 @@ public class MibSyncImpl implements SyncStrategy {
 
                     try (DruidPooledConnection connection = sourceDruid.getConnection()) {
 
-                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, tableName), connection, tableName, TableConstants.TabkeKey);
+                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, tableName), connection, tableName, TableConstants.TabkeKey,filedMap);
 
                         Boolean isTrue = true;
                         if (insertSql1 == null)
@@ -252,20 +283,20 @@ public class MibSyncImpl implements SyncStrategy {
             ArrayList<Future<Map>> resultList = new ArrayList<>();
             Arrays.stream(otherTables).forEach(table -> {
                 //并发执行
-                Future<Map> submitted = executorService.submit(new TableTask(table));
+                Future<Map> submitted = executorService.submit(new TableTask(table,map));
                 resultList.add(submitted);
 
             });
 
             for (int i = 0; i < resultList.size(); i++) {
                 try {
-                    Map map = resultList.get(i).get();
+                    Map map1 = resultList.get(i).get();
                     if(map != null){
-                        List<ErrorItem> errorItems1 = (List<ErrorItem>) map.get("errorItems");
+                        List<ErrorItem> errorItems1 = (List<ErrorItem>) map1.get("errorItems");
                         if(errorItems1 != null){
                             errorItems.addAll(errorItems1);
                         }
-                        Double costTime1 = (Double) map.get("costTime");
+                        Double costTime1 = (Double) map1.get("costTime");
                         costTime += costTime1;
                     }
                 } catch (Exception e) {
@@ -279,9 +310,10 @@ public class MibSyncImpl implements SyncStrategy {
             }else{
                 jobLog.setStatus("执行成功");
             }
-            jobLog.setCreateTime(Instant.now());
-
-            jobLog.setTotalTime(costTime);
+            DateTime now = DateTime.now();
+            jobLog.setCreateTime(now);
+            ;
+            jobLog.setTotalTime(NumberUtil.round(costTime,4).doubleValue());
             jobLogRepository.save(jobLog);
 
 

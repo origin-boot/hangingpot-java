@@ -2,10 +2,7 @@ package com.origin.hangingpot.infrastructure.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.origin.hangingpot.domain.BaseDBInfo;
-import com.origin.hangingpot.domain.ColumnInfo;
-import com.origin.hangingpot.domain.DatabaseConnection;
-import com.origin.hangingpot.domain.TableInfo;
+import com.origin.hangingpot.domain.*;
 import com.origin.hangingpot.infrastructure.db.DataSourceFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -14,10 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author: xujie
@@ -154,7 +148,7 @@ public class DBUtils {
     /**
      * 批量插入代码
      */
-    public static String assembleSQL(String srcSql, Connection conn,  String destTable,  String destTableKey) throws SQLException {
+    public static String assembleSQL(String srcSql, Connection conn,  String destTable,  String destTableKey,Map<String,Map<String,String>> map) throws SQLException {
         String uniqueName = "123";
 
         //默认的srcFields数组与destFields相同
@@ -184,7 +178,7 @@ public class DBUtils {
         while (rs.next()) {
             sql.append("(");
             for (int index = 0; index < destFields.length; index++) {
-                Object fieldValue = rs.getObject(destFields[index].trim()); //Todo 待实现字段映射
+                Object fieldValue = getValue(rs.getObject(destFields[index].trim()),destFields[index].trim(),map); //Todo 待实现字段映射
                 if (fieldValue == null) {
                     sql.append(fieldValue).append(index == (destFields.length - 1) ? "" : ",");
                 } else {
@@ -255,6 +249,16 @@ public class DBUtils {
 
     }
 
+    private static Object getValue(Object val, String filedName,Map<String,Map<String,String>> map){
+        if(val == null){
+            return null;
+        }
+        if(map != null && map.containsKey(filedName)){
+            String s = map.get(filedName).get(val.toString());
+            return  s == null ? val : s;
+        }
+        return val;
+    }
 
     /**
      * 分割insert 为单独的

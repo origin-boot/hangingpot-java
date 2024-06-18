@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @Author: YourName
  * @Date: 2024/6/4 00:00
@@ -26,18 +28,26 @@ public class ProjectController {
      */
     @GetMapping("/api/project/list")
     public Ok<PageResource> list(@Valid PageCommand pageCommand) {
-        Page<Project> projects = projectRepository.findAll(PageRequest.of(pageCommand.getPage(), pageCommand.getSize()));
-        return Ok.of(PageResource.of(projects));
+
+        if(pageCommand.getSearchText() != null)
+        {
+            Page<Project> byProjectNameLike = projectRepository.findByProjectNameLike(pageCommand.getSearchText(), PageRequest.of(pageCommand.getPage(), pageCommand.getSize()));
+            return Ok.of(PageResource.of(byProjectNameLike));
+        }else{
+            Page<Project> all = projectRepository.findAll(PageRequest.of(pageCommand.getPage(), pageCommand.getSize()));
+            return Ok.of(PageResource.of(all));
+        }
+
     }
     /**
-     * 添加
+     * 新增项目
      */
     @PostMapping("/api/project/add")
     public void add(@Valid @RequestBody Project project) {
         projectRepository.save(project);
     }
     /**
-     * 删除
+     * 删除项目
      *
      */
     @DeleteMapping("/api/project/{id}")
@@ -45,7 +55,7 @@ public class ProjectController {
         projectRepository.deleteById(id);
     }
     /**
-     * 更新
+     * 更新项目信息
      */
     @PutMapping("/api/project/update")
     public void update(@Valid @RequestBody Project project) {

@@ -13,6 +13,8 @@ public class Ok<T> extends ResponseEntity<T> {
 		super(body, headers, statusCode);
 	}
 
+	//错误的构造函数
+
 	public static <T> Ok<Empty> empty() {
 		return new Ok<>(new Empty(), null, HttpStatus.OK);
 	}

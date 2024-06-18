@@ -28,6 +28,8 @@ class PageCommand {
 
 
     private String searchText;
+    private String startTime;
+    private String endTime;
 
 
     @Min(0)
@@ -36,10 +38,21 @@ class PageCommand {
     @Min(1)
     private Integer size;
 
+    public String getSearchText() {
+        if (searchText == null) {
+            return null;
+        } else if (searchText.isEmpty()) {
+            return null;
+        } else {
+            return "%"+searchText+"%";
+        }
+
+    }
+
 }
 
 @Data
 @Builder
-class PageInfo{
+class PageInfo {
     private Long total;
 }

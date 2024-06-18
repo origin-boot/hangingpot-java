@@ -39,4 +39,5 @@ class PageResource {
 		resource.setPageInfo(PageInfo.builder().total(pageInfo.getTotalElements()).build());
 		return resource;
 	}
+
 }

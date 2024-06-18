@@ -57,7 +57,7 @@ public class DatabaseConnectionController {
     }
 
     /**
-     * 添加
+     * 新增数据源信息
      */
     @PostMapping
     void add(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {
@@ -86,7 +86,7 @@ public class DatabaseConnectionController {
     }
 
     /**
-     * 删除
+     * 删除数据源信息
      *
      */
     @DeleteMapping
@@ -94,7 +94,7 @@ public class DatabaseConnectionController {
         databaseConnectionRepository.deleteById(id);
     }
     /**
-     * 更新
+     * 更新数据源信息
      */
     @PutMapping
     void update(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {

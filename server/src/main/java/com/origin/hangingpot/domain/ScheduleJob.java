@@ -1,5 +1,6 @@
 package com.origin.hangingpot.domain;
 
+import cn.hutool.core.date.DateTime;
 import com.origin.hangingpot.infrastructure.validGroup.Insert;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -44,27 +46,19 @@ public class ScheduleJob {
     @Column(name = "status", nullable = false)
     private Boolean status = false;
 
-    @NotNull(groups = {Insert.class})
+
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @NotNull(groups = {Insert.class})
+
     @Column(name = "create_time", nullable = false)
-    private Instant createTime;
+    private Date createTime;
 
-    @NotNull(groups = {Insert.class})
+
     @Column(name = "update_time", nullable = false)
-    private Instant updateTime;
-
-    @NotNull(groups = {Insert.class})
-    @Column(name = "del_flag", nullable = false)
-    private Byte delFlag;
-
-    @NotNull(groups = {Insert.class})
-    @Column(name = "map_id", nullable = false)
-    private Long mapId;
+    private Date updateTime;
 
 
     @NotNull(groups = {Insert.class})

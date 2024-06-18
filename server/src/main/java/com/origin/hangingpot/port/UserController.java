@@ -22,6 +22,15 @@ public class UserController extends BaseController {
 	@Autowired
 	private UserRepository userRepository;
 
+	/**
+	 * 登录
+	 * @param httpServletResponse
+	 * @param command
+	 * @return
+	 * @throws UserNotFoundError
+	 * @throws UsernameOrPasswordError
+	 * @throws Exception
+	 */
 	@PostMapping("/api/login")
 	public Ok<UserResource> login(
 			HttpServletResponse httpServletResponse,
@@ -47,6 +56,10 @@ public class UserController extends BaseController {
 		return Ok.of(response);
 	}
 
+	/**
+	 * 登出
+	 * @return
+	 */
 	@PostMapping("/api/logout")
 	public Ok<Empty> logout() {
 		// Client side should remove the token, so no need to do anything here

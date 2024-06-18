@@ -41,6 +41,9 @@ public class EventController {
 
 	@Subscribe
 	public void handleDummyEvent(ScheduleJob event) throws InterruptedException {
+		if(event.getStatus()){
+			return;
+		}
 		logger.info("Received event: " + event.getJobName() + " " + event.getCronExpression() + " " + event.getRange() + " " + event.getProject().getId());
 		DateTime date = DateUtil.date();
 
@@ -65,7 +68,7 @@ public class EventController {
 				Long sourceId = databaseConnection.getId();
 				DatabaseConnection databaseConnection1 = target.get();
 				Long targetId = databaseConnection1.getId();
-				syncContext.SyncData(sourceId, targetId, string, nowString, "Sync1");
+				syncContext.SyncData(sourceId, targetId, string, nowString, "Sync1",event.getProject().getId(),"定时任务");
 			}
 
 		}, event.getCronExpression());

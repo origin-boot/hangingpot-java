@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,11 +21,11 @@ public class JobLog {
 
     @NotNull
     @Column(name = "start_time", nullable = false)
-    private Instant startTime;
+    private Date startTime;
 
     @NotNull
     @Column(name = "finish_time", nullable = false)
-    private Instant finishTime;
+    private Date finishTime;
 
     @Size(max = 50)
     @Column(name = "schedule_mode", length = 50)
@@ -42,7 +43,7 @@ public class JobLog {
     private String errorItems;
 
     @Column(name = "create_time", nullable = false)
-    private Instant createTime;
+    private Date createTime;
 
     @Column(name = "total_count")
     private Integer totalCount;

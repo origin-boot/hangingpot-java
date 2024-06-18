@@ -22,7 +22,7 @@ public class SyncTest {
 
     @Test
     void TestSync(){
-        syncContext.SyncData(1L,2L,"1000-01-01 00:00:00","9999-06-08 00:00:00","Sync1");
+        syncContext.SyncData(1L,2L,"1000-01-01 00:00:00","9999-06-08 00:00:00","Sync1",1L,"手动执行");
     }
 
     @Test

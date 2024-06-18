@@ -14,9 +14,9 @@ import java.sql.SQLException;
 @Service
 @RequiredArgsConstructor
 public class SyncContext {
-    public void SyncData(Long sourceId, Long destId, String startTime, String endTime,String type){
+    public void SyncData(Long sourceId, Long destId, String startTime, String endTime,String type,Long projectId,String runType){
         try {
-            SyncFactory.getSyncStrategy(type).SyncData(sourceId,destId,startTime,endTime);
+            SyncFactory.getSyncStrategy(type).SyncData(sourceId,destId,startTime,endTime,runType,projectId);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,6 @@
 package com.origin.hangingpot.domain;
 
+import cn.hutool.core.date.DateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -75,11 +77,11 @@ public class DatabaseConnection {
 
 
     @Column(name = "create_time")
-    private Instant createTime;
+    private Date createTime;
 
 
     @Column(name = "update_time")
-    private Instant updateTime;
+    private Date updateTime;
 
 
     @Column(name = "project_id")

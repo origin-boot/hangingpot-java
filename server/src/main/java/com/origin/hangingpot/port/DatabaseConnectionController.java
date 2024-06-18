@@ -73,7 +73,6 @@ public class DatabaseConnectionController {
             if(databaseConnections.size()>0){
                 throw new Error(201,"有项目已经绑定该数据源");
             }
-
         }
         //测试链接
         BaseDBInfo baseDbInfo = databaseConnection.getBaseDbInfo();
@@ -96,10 +95,11 @@ public class DatabaseConnectionController {
     /**
      * 更新数据源信息
      */
-    @PutMapping
-    void update(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {
+    @PatchMapping
+    Ok update(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {
         extracted(databaseConnection);
         databaseConnectionRepository.save(databaseConnection);
+        return Ok.empty();
     }
 
     /**

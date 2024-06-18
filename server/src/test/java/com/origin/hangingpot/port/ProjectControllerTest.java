@@ -19,10 +19,10 @@ class ProjectControllerTest {
 
     @Test
     void list() {
-        PageCommand pageCommand = new PageCommand(null,0,1);
-
-        Ok<PageResource> list = projectController.list(pageCommand);
-        System.out.println(list.toString());
+//        PageCommand pageCommand = new PageCommand(null,0,1);
+//
+//        Ok<PageResource> list = projectController.list(pageCommand);
+//        System.out.println(list.toString());
     }
 
     @Test

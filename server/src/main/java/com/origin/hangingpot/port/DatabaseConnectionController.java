@@ -20,7 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -60,10 +62,11 @@ public class DatabaseConnectionController {
      * 新增数据源信息
      */
     @PostMapping
-    void add(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {
+    Ok add(@Valid @RequestBody DatabaseConnection databaseConnection) throws Error {
         extracted(databaseConnection);
 
         databaseConnectionRepository.save(databaseConnection);
+        return Ok.empty();
     }
 
     private void extracted(DatabaseConnection databaseConnection) throws Error {
@@ -88,9 +91,10 @@ public class DatabaseConnectionController {
      * 删除数据源信息
      *
      */
-    @DeleteMapping
-    void delete(@RequestParam Long id) {
+    @DeleteMapping("/{id}")
+    Ok delete(@PathVariable Long id) {
         databaseConnectionRepository.deleteById(id);
+        return Ok.empty();
     }
     /**
      * 更新数据源信息
@@ -114,6 +118,7 @@ public class DatabaseConnectionController {
         }else{
             return null;
         }
+        
     }
 
 

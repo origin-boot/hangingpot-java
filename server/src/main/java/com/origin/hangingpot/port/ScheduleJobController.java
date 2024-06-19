@@ -91,17 +91,16 @@ public class ScheduleJobController {
      */
     @PatchMapping("/{id}")
     public Ok update(@PathVariable Long id, @Valid @RequestBody ScheduleJob job) {
+        job.setId(id);
         //查询数据库是否有projectId相同的任务
         scheduleJobRepository.findByProject_Id(job.getProject().getId()).ifPresent(j -> {
-            if(!j.getProject().getId().equals(job.getProject().getId()))
-                throw new IllegalArgumentException("项目已存在定时任务");
+            if(j.getProject().getId().equals(job.getProject().getId()) && !j.getId().equals(job.getId()))
+                throw new IllegalArgumentException("该项目已存在定时任务");
         });
-
-        job.setId(id);
         ScheduleJob scheduleJob = scheduleJobRepository.findById(id).orElseThrow();
         cronTaskRegistrar.removeTask(scheduleJob.getId()+scheduleJob.getJobName());
-
         ObjectUtil.copyPropertiesIgnoreNull(job, scheduleJob);
+        job.setUpdateTime(DateUtil.date());
         scheduleJobRepository.save(scheduleJob);
         asyncEventBus.post(scheduleJob);
         return Ok.empty();

@@ -1,5 +1,6 @@
 package com.origin.hangingpot.port;
 
+import cn.hutool.core.date.DateUtil;
 import com.origin.hangingpot.domain.Project;
 import com.origin.hangingpot.domain.success.Ok;
 import com.origin.hangingpot.infrastructure.repository.ProjectRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,6 +46,9 @@ public class ProjectController {
      */
     @PostMapping("/api/project/add")
     public void add(@Valid @RequestBody Project project) {
+        project.setCreateTime(new Date());
+        project.setUpdateTime(new Date());
+
         projectRepository.save(project);
     }
     /**
@@ -59,6 +64,7 @@ public class ProjectController {
      */
     @PutMapping("/api/project/update")
     public void update(@Valid @RequestBody Project project) {
+        project.setUpdateTime(DateUtil.date());
         projectRepository.save(project);
     }
 

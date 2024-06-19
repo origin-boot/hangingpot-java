@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Proxy;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -16,6 +17,8 @@ import java.time.Instant;
 @Table(name = "project")
 public class Project {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
     @Size(max = 255)
@@ -28,9 +31,9 @@ public class Project {
     private String projectDesc;
 
     @Column(name = "create_time")
-    private Instant createTime;
+    private Date createTime;
 
     @Column(name = "update_time")
-    private Instant updateTime;
+    private Date updateTime;
 
 }

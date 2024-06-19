@@ -56,4 +56,24 @@ public class JobLog {
     @Column(name = "diff_items")
     private String diffItems;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id")
+    private ScheduleJob job;
+
+    @Override
+    public String toString() {
+        return "JobLog {" +
+                "\n    startTime: " + startTime + ", \"任务开始时间\"" +
+                "\n    finishTime: " + finishTime + ", \"任务结束时间\"" +
+                "\n    scheduleMode: '" + scheduleMode + "', \"任务调度模式\"" +
+                "\n    totalTime: " + totalTime + ", \"任务总耗时\"" +
+                "\n    status: '" + status + "', \"任务状态\"" +
+                "\n    errorItems: '" + errorItems + "', \"错误项\"" +
+                "\n    createTime: " + createTime + ", \"日志创建时间\"" +
+                "\n    totalCount: " + totalCount + ", \"总计数\"" +
+                "\n    errorCount: " + errorCount + ", \"错误计数\"" +
+                "\n    diffItems: '" + diffItems + "', \"不同项\"" +
+                "\n    job: " + job + " \"相关任务\"" +
+                "\n}";
+    }
 }

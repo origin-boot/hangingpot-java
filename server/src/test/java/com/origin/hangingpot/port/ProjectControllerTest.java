@@ -1,5 +1,6 @@
 package com.origin.hangingpot.port;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.origin.hangingpot.domain.Project;
 import com.origin.hangingpot.domain.success.Ok;
@@ -32,8 +33,8 @@ class ProjectControllerTest {
         project.setId(id);
         project.setProjectName("test");
         project.setProjectDesc("test");
-        project.setCreateTime(Instant.now());
-        project.setUpdateTime(Instant.now());
+        project.setCreateTime(DateUtil.date());
+        project.setUpdateTime(DateUtil.date());
         projectController.add(project);
 
 
@@ -50,8 +51,8 @@ class ProjectControllerTest {
         project.setId(1L);
         project.setProjectName("test");
         project.setProjectDesc("test");
-        project.setCreateTime(Instant.now());
-        project.setUpdateTime(Instant.now());
+        project.setCreateTime(DateUtil.date());
+        project.setUpdateTime(DateUtil.date());
         projectController.update(project);
     }
 }

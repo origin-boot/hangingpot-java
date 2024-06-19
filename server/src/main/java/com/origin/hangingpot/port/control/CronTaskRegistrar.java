@@ -43,6 +43,11 @@ public class CronTaskRegistrar implements DisposableBean {
             }
             // 保存任务Id和定时任务
             this.scheduledTaskMap.put(jobId, scheduleTask(cronTask));
+
+            //输出当前任务
+            scheduledTaskMap.forEach((k,v)->{
+                log.info("当前任务:{}",k);
+            });
         }
     }
 
@@ -52,9 +57,6 @@ public class CronTaskRegistrar implements DisposableBean {
         if (Objects.nonNull(scheduledTask)) {
             scheduledTask.cancel();
         }
-        String s = """
-                2131312
-                """;
     }
 
     public ScheduledTask scheduleTask(CronTask cronTask) {

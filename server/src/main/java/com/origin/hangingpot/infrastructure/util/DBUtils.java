@@ -1,5 +1,6 @@
 package com.origin.hangingpot.infrastructure.util;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.origin.hangingpot.domain.*;
@@ -220,7 +221,7 @@ public class DBUtils {
         baseDBInfo.setUsername(databaseConnection.getUsername());
         baseDBInfo.setPassword(databaseConnection.getPassword());
 
-        DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
+        DruidDataSource mysql = DataSourceFactory.getDruidDataSource(databaseConnection.getId()+"", baseDBInfo);
         TableInfo tableInfo = new TableInfo();
         try (Connection root = mysql.getConnection();) {
             PreparedStatement preparedStatement = root.prepareStatement(String.format(SelectOne, tableName));
@@ -256,6 +257,9 @@ public class DBUtils {
         if(map != null && map.containsKey(filedName)){
             String s = map.get(filedName).get(val.toString());
             return  s == null ? val : s;
+        }
+        if(filedName.equals("sync_time")){
+            return DateUtil.now();
         }
         return val;
     }

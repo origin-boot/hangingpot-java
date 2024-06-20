@@ -50,6 +50,7 @@ public class MibSyncImpl implements SyncStrategy {
     final ScheduleJobRepository scheduleJobRepository;
     private  ExecutorService executorService = Executors.newFixedThreadPool(10);
     private Long MAX_COUNT = 10000L;
+
     /**
      * 根据源头端、目标端ID以及时间范围进行同步
      *
@@ -135,8 +136,8 @@ public class MibSyncImpl implements SyncStrategy {
         if (source.isPresent() && dest.isPresent()) {
             DatabaseConnection sourceDc = source.get();
             DatabaseConnection destDc = dest.get();
-            DruidDataSource sourceDruid = DataSourceFactory.getDruidDataSource(String.valueOf(sourceDc.getId()), sourceDc.getBaseDbInfo());
-            DruidDataSource destDruid = DataSourceFactory.getDruidDataSource(String.valueOf(destDc.getId()), destDc.getBaseDbInfo());
+            DruidDataSource sourceDruid = DataSourceFactory.getDruidDataSource(sourceDc.getId()+jobLog.getJob().getJobName()+"source", sourceDc.getBaseDbInfo());
+            DruidDataSource destDruid = DataSourceFactory.getDruidDataSource(destDc.getId()+jobLog.getJob().getJobName()+"dest", destDc.getBaseDbInfo());
 
             // 查询数据总量
             //先查询总条数

@@ -6,6 +6,7 @@ import com.origin.hangingpot.domain.constants.DbSyncConstants;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author: YourName
@@ -14,10 +15,10 @@ import java.util.Map;
  **/
 
 public class DataSourceFactory {
-    private static volatile Map<String, DruidDataSource> dataSourceMap;
+    private static volatile ConcurrentHashMap<String, DruidDataSource> dataSourceMap;
 
     static{
-        dataSourceMap = new HashMap<>();
+        dataSourceMap = new ConcurrentHashMap<>();
     }
     public static DruidDataSource getDruidDataSource(String dbType, BaseDBInfo baseDBInfo){
         //根据id查询是否在map中
@@ -33,13 +34,14 @@ public class DataSourceFactory {
             dataSource.setMaxWait(6000);  //获取连接的最大等待时间，单位毫秒
             dataSource.setTimeBetweenEvictionRunsMillis(3600000);
             dataSource.setMinEvictableIdleTimeMillis(3600000);
-            if(DbSyncConstants.TYPE_DB_MYSQL.equals(baseDBInfo.getDbtype())){  //MySQL
-                dataSource.setValidationQuery("SELECT 1");
-            }else if(DbSyncConstants.TYPE_DB_ORACLE.equals(baseDBInfo.getDbtype())){ //Oracle
-                dataSource.setValidationQuery("SELECT 1 FROM DUAL");
-            }else if(DbSyncConstants.TYPE_DB_SQLSERVER.equals(baseDBInfo.getDbtype())){
-                //TODO 待实现
-            }
+            dataSource.setValidationQuery("SELECT 1");
+//            if(DbSyncConstants.TYPE_DB_MYSQL.equals(baseDBInfo.getDbtype())){  //MySQL
+//                dataSource.setValidationQuery("SELECT 1");
+//            }else if(DbSyncConstants.TYPE_DB_ORACLE.equals(baseDBInfo.getDbtype())){ //Oracle
+//                dataSource.setValidationQuery("SELECT 1 FROM DUAL");
+//            }else if(DbSyncConstants.TYPE_DB_SQLSERVER.equals(baseDBInfo.getDbtype())){
+//                //TODO 待实现
+//            }
             dataSource.setTestWhileIdle(true);
             dataSource.setTestOnBorrow(false);
             dataSource.setTestOnReturn(false);

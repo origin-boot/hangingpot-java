@@ -88,26 +88,10 @@ public class MibSyncImpl implements SyncStrategy {
         }
         Long projectId = args[0];
 
-        // 根据项目ID查询数据映射关系
-        //获取项目映射
+        Map<String, Object> map = new HashMap<>();
+        map.put("projectId",projectId);
+
         List<ProjectMap> byProjectId = projectMapRepository.findByProject_Id(projectId);
-
-        // 将数据映射关系转换为Map方便后续查询
-        //转成map
-        Map<String, Map<String,String>> map = new HashMap<>();
-        byProjectId.forEach(item -> {
-            String fieldName = item.getFieldName();
-            String sourceVal = item.getSourceVal();
-            String targetVal = item.getTargetVal();
-            if(map.containsKey(fieldName)){
-                map.get(fieldName).put(sourceVal,targetVal);
-            }else{
-                Map<String,String> temp = new HashMap<>();
-                temp.put(sourceVal,targetVal);
-                map.put(fieldName,temp);
-            }
-        });
-
         // 初始化任务日志
         //日志记录
         JobLog jobLog = new JobLog();
@@ -139,10 +123,11 @@ public class MibSyncImpl implements SyncStrategy {
             DruidDataSource sourceDruid = DataSourceFactory.getDruidDataSource(sourceDc.getId()+jobLog.getJob().getJobName()+"source", sourceDc.getBaseDbInfo());
             DruidDataSource destDruid = DataSourceFactory.getDruidDataSource(destDc.getId()+jobLog.getJob().getJobName()+"dest", destDc.getBaseDbInfo());
 
+
             // 查询数据总量
             //先查询总条数
             try (DruidPooledConnection connection = sourceDruid.getConnection()) {
-                String countSql = DBUtils.getCountSql(TableConstants.MAIN_TABLE, TableConstants.CONDITION_COL, startTime, endTime);
+                String countSql = DBUtils.getCountSql(DBUtils.getSourceTableName(byProjectId,TableConstants.MAIN_TABLE), TableConstants.CONDITION_COL, startTime, endTime);
                 PreparedStatement preparedStatement = connection.prepareStatement(countSql);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
@@ -168,10 +153,12 @@ public class MibSyncImpl implements SyncStrategy {
                 batchCount = (int) (totalCount / MAX_COUNT) + 1;
             }
             Long nowCount = 0L;
+            map.put("nowTable",TableConstants.MAIN_TABLE);
+            map.put("nowTableInfo",DBUtils.getMetaInfo(destDc,TableConstants.MAIN_TABLE));
             while(batchCount > 0){
                 // 构造分批查询的SQL
                 //获取查询sql
-                String selectSql = DBUtils.getSelectSql(TableConstants.MAIN_TABLE, TableConstants.CONDITION_COL, startTime, endTime, nowCount,MAX_COUNT);
+                String selectSql = DBUtils.getSelectSql(DBUtils.getSourceTableName(byProjectId,TableConstants.MAIN_TABLE), TableConstants.CONDITION_COL, startTime, endTime, nowCount,MAX_COUNT);
 
                 // 构造对应的插入SQL
                 //获取insert sql
@@ -214,7 +201,7 @@ public class MibSyncImpl implements SyncStrategy {
             // 同步其他关联表数据
             // 同步其余表
             //查出来所有id
-            String selectOnlyIdSql = DBUtils.getSelectOnlyIdSql(TableConstants.MAIN_TABLE, TableConstants.CONDITION_COL, startTime, endTime);
+            String selectOnlyIdSql = DBUtils.getSelectOnlyIdSql(DBUtils.getSourceTableName(byProjectId,TableConstants.MAIN_TABLE), TableConstants.CONDITION_COL, startTime, endTime);
             //执行selectOnlyIdSql 获取id数组
             StringBuilder ids = new StringBuilder("(");
             Long count = 0L;
@@ -235,7 +222,8 @@ public class MibSyncImpl implements SyncStrategy {
 
 
                 //目标端获取ids
-                PreparedStatement preparedStatement1 = connection1.prepareStatement(selectOnlyIdSql);
+                String selectOnlyIdSql1 = DBUtils.getSelectOnlyIdSql(TableConstants.MAIN_TABLE, TableConstants.CONDITION_COL, startTime, endTime);
+                PreparedStatement preparedStatement1 = connection1.prepareStatement(selectOnlyIdSql1);
                 ResultSet resultSet1 = preparedStatement1.executeQuery();
                 while (resultSet1.next()) {
                     long id = resultSet1.getLong(TableConstants.TabkeKey);
@@ -259,10 +247,12 @@ public class MibSyncImpl implements SyncStrategy {
             costTime += stopWatch.getTotalTimeSeconds();
             class TableTask implements Callable<Map>{
                 private String tableName;
-                private Map<String,Map<String,String>> filedMap;
+                private Map<String,Object> filedMap;
 
-                public TableTask(String table,Map<String,Map<String,String>> map) {
-                    this.filedMap = map;
+                public TableTask(String table,Map<String,Object> map) {
+                    this.filedMap = new HashMap<>(map);
+                    filedMap.put("nowTable",table);
+                    filedMap.put("nowTableInfo",DBUtils.getMetaInfo(destDc,table));
                     this.tableName = table;
                 }
 
@@ -316,6 +306,7 @@ public class MibSyncImpl implements SyncStrategy {
                         try {
                             PreparedStatement preparedStatement = connection.prepareStatement(item);
                             preparedStatement.execute();
+
                         } catch (SQLException e) { //失败
                             log.error("执行失败：" + item);
                             errorItems.add(new ErrorItem(item,e.getMessage()));

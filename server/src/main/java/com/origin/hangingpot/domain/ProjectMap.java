@@ -21,10 +21,6 @@ public class ProjectMap {
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "field_name")
-    private String fieldName;
 
     @Size(max = 255)
     @Column(name = "source_val")
@@ -35,5 +31,21 @@ public class ProjectMap {
     @Column(name = "target_val")
     @NotNull
     private String targetVal;
+
+    @Size(max = 255)
+    @Column(name = "source_table")
+    private String sourceTable;
+
+    @Size(max = 255)
+    @Column(name = "target_table")
+    private String targetTable;
+
+    @Size(max = 255)
+    @Column(name = "source_field")
+    private String sourceField;
+
+    @Size(max = 255)
+    @Column(name = "target_filed")
+    private String targetFiled;
 
 }

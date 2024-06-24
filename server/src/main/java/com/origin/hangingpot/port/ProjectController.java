@@ -45,27 +45,30 @@ public class ProjectController {
      * 新增项目
      */
     @PostMapping("/api/project/add")
-    public void add(@Valid @RequestBody Project project) {
+    public Ok add(@Valid @RequestBody Project project) {
         project.setCreateTime(new Date());
         project.setUpdateTime(new Date());
 
         projectRepository.save(project);
+        return Ok.empty();
     }
     /**
      * 删除项目
      *
      */
     @DeleteMapping("/api/project/{id}")
-    public void delete(@PathVariable Long id) {
+    public Ok delete(@PathVariable Long id) {
         projectRepository.deleteById(id);
+        return Ok.empty();
     }
     /**
      * 更新项目信息
      */
     @PutMapping("/api/project/update")
-    public void update(@Valid @RequestBody Project project) {
+    public Ok update(@Valid @RequestBody Project project) {
         project.setUpdateTime(DateUtil.date());
         projectRepository.save(project);
+        return Ok.empty();
     }
 
 

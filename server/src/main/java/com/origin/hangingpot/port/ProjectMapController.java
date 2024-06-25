@@ -71,8 +71,9 @@ public class ProjectMapController {
      * @param id 待删除项目映射的ID。
      */
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public Ok delete(@PathVariable Long id) {
         projectMapRepository.deleteById(id);
+        return Ok.empty();
     }
 
     /**

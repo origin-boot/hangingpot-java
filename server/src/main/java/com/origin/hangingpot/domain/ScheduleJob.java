@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Proxy;
 
 import java.time.Instant;
 import java.util.Date;
@@ -16,6 +17,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@Proxy(lazy=false)
 @Table(name = "schedule_job")
 public class ScheduleJob {
     @Id

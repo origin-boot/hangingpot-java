@@ -65,4 +65,7 @@ public class ScheduleJob {
     @Column(name = "`range`", nullable = false)
     private Long range;
 
+    @Column(name = "start_time")
+    private Date startTime;
+
 }

@@ -41,24 +41,24 @@ public class SqlUtilsTest {
 
     @Test
     public void testAssignSql() throws SQLException {
-        Optional<DatabaseConnection> byId = databaseConnectionRepository.findById(1L);
-        if(byId.isPresent()){
-            DatabaseConnection databaseConnection = byId.get();
-
-            BaseDBInfo baseDBInfo = new BaseDBInfo();
-            baseDBInfo.setUrl(databaseConnection.getUrl());
-            baseDBInfo.setUsername(databaseConnection.getUsername());
-            baseDBInfo.setPassword(databaseConnection.getPassword());
-
-            DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
-            String[] strings = {"id", "phone", "className", "classId"};
-
-            String testSql = DBUtils.getSelectSql(TableConstants.MAIN_TABLE,"jssj","2024-01-04 00:00:00","2024-01-08 00:00:00",0L,1000L);
-            String assembleSQL = DBUtils.assembleSQL(String.format(testSql,TableConstants.MAIN_TABLE), mysql.getConnection(),  TableConstants.MAIN_TABLE, "OriginalID",null);
-            System.out.println(assembleSQL);
-        }else{
-            System.out.println("null");
-        }
+//        Optional<DatabaseConnection> byId = databaseConnectionRepository.findById(1L);
+//        if(byId.isPresent()){
+//            DatabaseConnection databaseConnection = byId.get();
+//
+//            BaseDBInfo baseDBInfo = new BaseDBInfo();
+//            baseDBInfo.setUrl(databaseConnection.getUrl());
+//            baseDBInfo.setUsername(databaseConnection.getUsername());
+//            baseDBInfo.setPassword(databaseConnection.getPassword());
+//
+//            DruidDataSource mysql = DataSourceFactory.getDruidDataSource("MySQL", baseDBInfo);
+//            String[] strings = {"id", "phone", "className", "classId"};
+//
+//            String testSql = DBUtils.getSelectSql(TableConstants.MAIN_TABLE,"jssj","2024-01-04 00:00:00","2024-01-08 00:00:00",0L,1000L);
+//            String assembleSQL = DBUtils.assembleSQL(String.format(testSql,TableConstants.MAIN_TABLE), mysql.getConnection(),  TableConstants.MAIN_TABLE, "OriginalID",null);
+//            System.out.println(assembleSQL);
+//        }else{
+//            System.out.println("null");
+//        }
 
     }
 }

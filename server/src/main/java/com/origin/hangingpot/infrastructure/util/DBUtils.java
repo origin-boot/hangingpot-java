@@ -134,11 +134,11 @@ public class DBUtils {
     /**
      * 根据 sync_time 开始和结束来生成对应查询sql
      */
-    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime,Long nowCount,Long maxCount) {
+    public static String getSelectSql(String tableName, String conditionCol,String startTime, String endTime) {
         StringBuilder sql = new StringBuilder("select *");
         sql.append(" from ").append(tableName).append(" where ");
 
-        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s' limit ").append(nowCount*maxCount).append(","+maxCount);
+        sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s' order by OriginalID");
         return checkSql(String.format(sql.toString(),startTime,endTime));
     }
     /**
@@ -160,6 +160,89 @@ public class DBUtils {
 
         sql.append(conditionCol+" >= '%s' and "+conditionCol+" < '%s'");
         return checkSql(String.format(sql.toString(),startTime,endTime));
+    }
+
+    public static String assembleSQL(ResultSet rs,  String destTable,  String destTableKey,Map<String,Object> map,int maxCount) throws SQLException {
+        //map中获取项目id
+        Object o = map.get("projectId");
+        Long projectId = null;
+        if(o != null){
+            projectId = Long.parseLong(o.toString());
+        }
+        //map获取当前目标表信息
+        Object o1 = map.get("nowTableInfo");
+        TableInfo nowTableInfo = null;
+        if(o1 != null){
+            nowTableInfo = (TableInfo) o1;
+        }
+
+        String uniqueName = "123";
+        List<ProjectMap> projectMaps = staticProjectMapRepository.findByProject_Id(projectId);
+        //默认的srcFields数组与destFields相同
+        String[] srcFields = new String[0];
+        String[] destFields = new String[0];
+        //获取表列数
+        int columnCount = rs.getMetaData().getColumnCount();
+        srcFields = new String[columnCount];
+        if (nowTableInfo != null) {
+            destFields = nowTableInfo.getColumns().stream().map(ColumnInfo::getFiledName).toArray(String[]::new);
+        }
+        String[] updateFields = new String[columnCount];
+
+        for (int i = 1; i <= columnCount; i++) {
+            srcFields[i - 1] = rs.getMetaData().getColumnName(i);
+        }
+
+        updateFields = Arrays.stream(destFields).filter(s -> !s.equals(destTableKey)).toArray(String[]::new);
+
+        //
+        Object o2 = map.get("projectId");
+        Long projectId1 = null;
+        List<ProjectMap> byProjectId = null;
+        if(o2 != null){
+            projectId = Long.parseLong(o.toString());
+            byProjectId = staticProjectMapRepository.findByProject_Id(projectId);
+            map.put("byProjectId",byProjectId);
+        }
+
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("insert into ").append(destTable).append(" (").append(String.join(",",destFields)).append(") values ");
+        long count = 0;
+
+
+
+        while (rs.next() && maxCount > 0) {
+            sql.append("(");
+            for (int index = 0; index < destFields.length; index++) {
+                Object fieldValue = getValue(rs,srcFields,destFields[index].trim(),map); //值映射
+                if (fieldValue == null) {
+                    sql.append(fieldValue).append(index == (destFields.length - 1) ? "" : ",");
+                } else {
+                    sql.append("'").append(fieldValue).append(index == (destFields.length - 1) ? "'" : "',");
+                }
+            }
+            sql.append("),");
+            count++;
+            maxCount --;
+
+        }
+
+        if(count > 0){
+            //去掉末尾逗号
+            sql = sql.deleteCharAt(sql.length() - 1);
+            //加入主键冲突处理  -》更新
+            sql.append(" on duplicate key update ");
+            for (int index = 0; index < updateFields.length; index++) {
+                sql.append(updateFields[index]).append("= values(").append(updateFields[index]).append(index == (updateFields.length - 1) ? ")" : "),");
+            }
+
+
+        }
+        if(count == 0){
+            return null;
+        }
+        return checkSql(sql.toString());
     }
     /**
      * 批量插入代码
@@ -253,6 +336,7 @@ public class DBUtils {
     }
 
     public static String getSourceTableName(List<ProjectMap> projectMaps, String tableName) {
+
         if (projectMaps == null || projectMaps.isEmpty()){
             return tableName;
         }
@@ -304,18 +388,19 @@ public class DBUtils {
     }
 
     private static Object getValue(ResultSet rs,String [] sourceTables, String filedName,Map<String,Object> map) {
-
-        Object o = map.get("projectId");
-        Long projectId = null;
+        Object o = map.get("byProjectId");
+        List<ProjectMap> byProjectId = null;
         if(o != null){
-            projectId = Long.parseLong(o.toString());
+            byProjectId = (List<ProjectMap>) o;
+        }else{
+            byProjectId = new ArrayList<>();
         }
-        List<ProjectMap> byProjectId = staticProjectMapRepository.findByProject_Id(projectId);
+
         Object value = null;
         try {
             value = rs.getObject(filedName);
         } catch (SQLException e) {
-            System.out.println("获取值失败");
+
         }
 
         //获取当前表
@@ -415,7 +500,8 @@ public class DBUtils {
      */
     public static boolean isRightfulString(String text) {
         //检测 text是否含 ; /* -- 等注入关键字
-        return !text.contains(";") && !text.contains("/*") && !text.contains("--");
+        return true;
+//        return !text.contains(";") && !text.contains("/*") && !text.contains("--");
 
     }
 

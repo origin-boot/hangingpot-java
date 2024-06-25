@@ -49,7 +49,7 @@ public class MibSyncImpl implements SyncStrategy {
     final ProjectMapRepository projectMapRepository;
     final ScheduleJobRepository scheduleJobRepository;
     private  ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private Long MAX_COUNT = 10000L;
+    private Long MAX_COUNT = 1000L;
 
     /**
      * 根据源头端、目标端ID以及时间范围进行同步
@@ -155,48 +155,61 @@ public class MibSyncImpl implements SyncStrategy {
             Long nowCount = 0L;
             map.put("nowTable",TableConstants.MAIN_TABLE);
             map.put("nowTableInfo",DBUtils.getMetaInfo(destDc,TableConstants.MAIN_TABLE));
-            while(batchCount > 0){
-                // 构造分批查询的SQL
+            ResultSet resultSetMain = null;
+            try (DruidPooledConnection connection = sourceDruid.getConnection()) {
                 //获取查询sql
-                String selectSql = DBUtils.getSelectSql(DBUtils.getSourceTableName(byProjectId,TableConstants.MAIN_TABLE), TableConstants.CONDITION_COL, startTime, endTime, nowCount,MAX_COUNT);
-
-                // 构造对应的插入SQL
-                //获取insert sql
-                String insertSql = null;
-                try (DruidPooledConnection connection = sourceDruid.getConnection()) {
-                    insertSql = DBUtils.assembleSQL(selectSql, connection, TableConstants.MAIN_TABLE, TableConstants.TabkeKey,map);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                // 尝试批量插入到目标数据源
-                // 目标端执行sql
-                Boolean isTrue = true;
-                try (DruidPooledConnection connection = destDruid.getConnection()) {
-                    PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
-                    boolean execute = preparedStatement.execute();
+                String selectSql = DBUtils.getSelectSql(DBUtils.getSourceTableName(byProjectId,TableConstants.MAIN_TABLE), TableConstants.CONDITION_COL, startTime, endTime);
+                PreparedStatement preparedStatement = connection.prepareStatement(selectSql);
+                resultSetMain = preparedStatement.executeQuery();
+                resultSetMain.setFetchSize(1000);
+                while(batchCount > 0){
+                    // 构造分批查询的SQL
 
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    isTrue = false;
-                }
+                    // 构造对应的插入SQL
+                    //获取insert sql
+                    String insertSql = null;
+                    try  {
 
-                // 如果批量插入失败，则尝试逐条插入
-                if(!isTrue){
-                    try(DruidPooledConnection connection1 = destDruid.getConnection()){
-                        List<ErrorItem> errorItems1 = insertOneByOne(insertSql, connection1);
-                        errorItems.addAll(errorItems1);
-                    }catch (Exception e){
+                        insertSql = DBUtils.assembleSQL(resultSetMain, TableConstants.MAIN_TABLE, TableConstants.TabkeKey,map,1000);
+                        log.info("========第{}批========" ,batchCount);
+//                    insertSql = DBUtils.assembleSQL(selectSql, connection, TableConstants.MAIN_TABLE, TableConstants.TabkeKey,map);
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("========同步失败："  + "失败了，错误信息：" + e.getMessage()+"========");
+                    }
+                    // 尝试批量插入到目标数据源
+                    // 目标端执行sql
+                    Boolean isTrue = true;
+                    try (DruidPooledConnection connection1 = destDruid.getConnection()) {
+                        PreparedStatement preparedStatement1 = connection1.prepareStatement(insertSql);
+                        boolean execute = preparedStatement1.execute();
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        isTrue = false;
                     }
 
-                }
+                    // 如果批量插入失败，则尝试逐条插入
+                    if(!isTrue){
+                        try(DruidPooledConnection connection1 = destDruid.getConnection()){
+                            List<ErrorItem> errorItems1 = insertOneByOne(insertSql, connection1);
+                            errorItems.addAll(errorItems1);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                            log.error("========同步失败："  + "失败了，错误信息：" + e.getMessage()+"========");
+                        }
 
-                // 更新批次计数和总数计数
-                batchCount --;
-                nowCount ++;
+                    }
+
+                    // 更新批次计数和总数计数
+                    batchCount --;
+                    nowCount ++;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
             }
+
 
             // 同步其他关联表数据
             // 同步其余表
@@ -264,7 +277,7 @@ public class MibSyncImpl implements SyncStrategy {
 
                     try (DruidPooledConnection connection = sourceDruid.getConnection()) {
 
-                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, tableName), connection, tableName, TableConstants.TabkeKey,filedMap);
+                        String insertSql1 = DBUtils.assembleSQL(String.format(selectByIdSql, DBUtils.getSourceTableName(byProjectId,tableName)), connection, tableName, TableConstants.TabkeKey,filedMap);
 
                         Boolean isTrue = true;
                         if (insertSql1 == null)
@@ -324,14 +337,21 @@ public class MibSyncImpl implements SyncStrategy {
                 resultList.add(submitted);
 
             });
-
+            Map<String,List<ErrorItem>> errorMap = new HashMap<>();
             for (int i = 0; i < resultList.size(); i++) {
                 try {
                     Map map1 = resultList.get(i).get();
                     if(map != null){
                         List<ErrorItem> errorItems1 = (List<ErrorItem>) map1.get("errorItems");
                         if(errorItems1 != null){
-                            errorItems.addAll(errorItems1);
+                            //如果errorItems1大小大于10.只保留前十条数据sql字段，其余的设置成null
+                            if(errorItems1.size() > 10){
+                                for (int j = 10; j < errorItems1.size(); j++) {
+                                    errorItems1.get(j).setSql(null);
+                                }
+                            }
+                            errorMap.put(otherTables[i],errorItems1);
+
                         }
                         Double costTime1 = (Double) map1.get("costTime");
                         costTime += costTime1;
@@ -341,8 +361,10 @@ public class MibSyncImpl implements SyncStrategy {
                     e.printStackTrace();
                 }
             }
-            if(errorItems.size() > 0) {
-                jobLog.setErrorItems(com.alibaba.fastjson2.JSON.toJSONString(errorItems));
+            errorMap.put("mib_base_mr_adinfomation",errorItems);
+
+            if(errorMap.size() > 0) {
+                jobLog.setErrorItems(com.alibaba.fastjson2.JSON.toJSONString(errorMap));
                 jobLog.setErrorCount(errorItems.size());
                 jobLog.setStatus("部分失败");
             }else{

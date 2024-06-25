@@ -53,12 +53,17 @@ public class EventController {
 			DateTime now = DateUtil.date();
 			//获取同步范围
 			Long range = event.getRange();
+			if(event.getStartTime() != null){
+				now = DateUtil.date(event.getStartTime());
+			}
+			DateTime date1 = DateUtil.dateNew(now);
 			//获取同步开始时间
-			DateTime startTime = now.offset(DateField.HOUR, (int) -range-1);//容错处理，多同步一小时
+			DateTime startTime = now.offset(DateField.HOUR, (int) -range);//容错处理，多同步一小时
 			String string = startTime.toString("yyyy-MM-dd HH:mm:ss");
 			String nowString = DateUtil.now();
 			System.out.println("开始时间："+string);
-			System.out.println("结束时间："+nowString);
+			System.out.println("结束时间："+date1);
+			String string1 = date1.toString("yyyy-MM-dd HH:mm:ss");
 			//查询任务对应的数据库连接源头
 			Optional<DatabaseConnection> source = databaseConnectionRepository.findBySourceTypeAndProjectId("源头端", event.getProject().getId());
 			//查询任务对应的数据库连接目标端
@@ -68,7 +73,7 @@ public class EventController {
 				Long sourceId = databaseConnection.getId();
 				DatabaseConnection databaseConnection1 = target.get();
 				Long targetId = databaseConnection1.getId();
-				syncContext.SyncData(sourceId, targetId, string, nowString, "Sync1",event.getProject().getId(),"定时任务");
+				syncContext.SyncData(sourceId, targetId, string, string1, "Sync1",event.getProject().getId(),"定时任务");
 			}
 
 		}, event.getCronExpression());

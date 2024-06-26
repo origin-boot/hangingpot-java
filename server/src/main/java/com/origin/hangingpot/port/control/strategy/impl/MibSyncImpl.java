@@ -75,7 +75,7 @@ public class MibSyncImpl implements SyncStrategy {
      * @param args 可变参数，第一个元素为项目ID，用于查询项目相关的数据映射关系
      */
     @Override
-    public void SyncData(Long sourceId, Long destId, String startTime, String endTime,String runType,Long...args) {
+    public JobLog SyncData(Long sourceId, Long destId, String startTime, String endTime,String runType,Long...args) {
         // 初始化错误记录列表
         //错误记录列表
         List<ErrorItem> errorItems = new ArrayList<>();
@@ -84,7 +84,7 @@ public class MibSyncImpl implements SyncStrategy {
         //映射
         if (args.length == 0) {
             log.error("参数错误！");
-            return;
+            return null;
         }
         Long projectId = args[0];
 
@@ -141,7 +141,7 @@ public class MibSyncImpl implements SyncStrategy {
             // 如果数据总量为0，则结束同步
             if(totalCount == 0){
                 log.info("========无数据！========");
-                return;
+                return null;
             }
 
             // 计算需要分批处理的次数
@@ -256,6 +256,8 @@ public class MibSyncImpl implements SyncStrategy {
 
             log.info("========共计：" + count + "条数据"+ "-耗时：" + stopWatch.getTotalTimeSeconds() + "秒========");
             String selectByIdSql = "select * from %s where OriginalID in " + ids;
+            String countByIdSql = "select count(*) as count from %s where OriginalID in " + ids;
+
             jobLog.setTotalCount(Math.toIntExact(count));
             costTime += stopWatch.getTotalTimeSeconds();
             class TableTask implements Callable<Map>{
@@ -271,9 +273,24 @@ public class MibSyncImpl implements SyncStrategy {
 
                 @Override
                 public Map call() throws Exception {
+
                     StopWatch stopWatch = new StopWatch();
                     stopWatch.start();
                     Map<String,Object> map = new HashMap<>();
+                    //先查询条数
+                    try (DruidPooledConnection connection = sourceDruid.getConnection()) {
+                        String countByIdSql1 = String.format(countByIdSql, DBUtils.getSourceTableName(byProjectId,tableName));
+                        PreparedStatement preparedStatement = connection.prepareStatement(countByIdSql1);
+                        ResultSet resultSet = preparedStatement.executeQuery();
+                        while (resultSet.next()) {
+                            log.info("======== {} == 总共：{}条数据========",tableName,resultSet.getLong(1));
+                            Long totalCount = resultSet.getLong(1);
+                            map.put("count",totalCount);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
 
                     try (DruidPooledConnection connection = sourceDruid.getConnection()) {
 
@@ -338,6 +355,7 @@ public class MibSyncImpl implements SyncStrategy {
 
             });
             Map<String,List<ErrorItem>> errorMap = new HashMap<>();
+            Map<String,Long> countMap = new HashMap<>();
             for (int i = 0; i < resultList.size(); i++) {
                 try {
                     Map map1 = resultList.get(i).get();
@@ -355,14 +373,24 @@ public class MibSyncImpl implements SyncStrategy {
                         }
                         Double costTime1 = (Double) map1.get("costTime");
                         costTime += costTime1;
+                        Long count1 = (Long) map1.get("count");
+                        countMap.put(otherTables[i],count1);
                         log.info("========同步 "+otherTables[i] + "成功，耗时：" + costTime1 + "秒========");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            errorMap.put("mib_base_mr_adinfomation",errorItems);
+            if(errorItems.size() > 10){
+                for (int i = 10; i < errorItems.size(); i++) {
+                    errorItems.get(i).setSql(null);
+                }
+            }
+            if(!errorItems.isEmpty()){
+                errorMap.put("mib_base_mr_adinfomation",errorItems);
+            }
 
+            jobLog.setChildCount(com.alibaba.fastjson2.JSON.toJSONString(countMap));
             if(errorMap.size() > 0) {
                 jobLog.setErrorItems(com.alibaba.fastjson2.JSON.toJSONString(errorMap));
                 jobLog.setErrorCount(errorItems.size());
@@ -382,7 +410,7 @@ public class MibSyncImpl implements SyncStrategy {
 
 
         }
-
+        return jobLog;
 
     }
     private List<ErrorItem> insertOneByOne(String insertSql,DruidPooledConnection connection) {

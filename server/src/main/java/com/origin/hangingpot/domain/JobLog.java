@@ -60,6 +60,10 @@ public class JobLog {
     @JoinColumn(name = "job_id")
     private ScheduleJob job;
 
+    @Size(max = 2550)
+    @Column(name = "child_count", length = 2550)
+    private String childCount;
+
     @Override
     public String toString() {
         return "JobLog {" +

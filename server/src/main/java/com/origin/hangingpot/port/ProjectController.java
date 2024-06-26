@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.origin.hangingpot.domain.Project;
 import com.origin.hangingpot.domain.success.Ok;
 import com.origin.hangingpot.infrastructure.repository.ProjectRepository;
+import com.origin.hangingpot.infrastructure.util.ObjectUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -66,8 +67,10 @@ public class ProjectController {
      */
     @PutMapping("/api/project/update")
     public Ok update(@Valid @RequestBody Project project) {
+        Project project1 = projectRepository.findById(project.getId()).orElseThrow(() -> new RuntimeException("该项目不存在"));
         project.setUpdateTime(DateUtil.date());
-        projectRepository.save(project);
+        ObjectUtil.copyPropertiesIgnoreNull(project, project1);
+        projectRepository.save(project1);
         return Ok.empty();
     }
 

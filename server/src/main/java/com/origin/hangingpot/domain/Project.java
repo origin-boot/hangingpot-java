@@ -1,6 +1,7 @@
 package com.origin.hangingpot.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class Project {
 
     @Size(max = 255)
     @NotNull
+    @NotEmpty
     @Column(name = "project_name", nullable = false)
     private String projectName;
 

@@ -72,6 +72,7 @@ public class ProjectMapController {
      */
     @DeleteMapping("/{id}")
     public Ok delete(@PathVariable Long id) {
+        projectMapRepository.findById(id).orElseThrow(() -> new RuntimeException("该字典不存在"));
         projectMapRepository.deleteById(id);
         return Ok.empty();
     }

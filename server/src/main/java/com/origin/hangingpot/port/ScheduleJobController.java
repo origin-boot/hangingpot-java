@@ -3,6 +3,7 @@ package com.origin.hangingpot.port;
 import cn.hutool.core.date.DateUtil;
 import com.google.common.eventbus.AsyncEventBus;
 import com.origin.hangingpot.domain.DatabaseConnection;
+import com.origin.hangingpot.domain.JobLog;
 import com.origin.hangingpot.domain.ScheduleJob;
 import com.origin.hangingpot.domain.User;
 import com.origin.hangingpot.domain.error.UnauthorizedError;
@@ -139,8 +140,8 @@ public class ScheduleJobController {
             throw new IllegalArgumentException("数据源不存在");
         }
         //执行定时任务
-        syncContext.SyncData(source.getId(), target.getId(), startTime, endTime, "Sync1", job.getProject().getId(),"手动执行");
-        return Ok.empty();
+        JobLog jobLog = syncContext.SyncData(source.getId(), target.getId(), startTime, endTime, "Sync1", job.getProject().getId(), "手动执行");
+        return Ok.of(jobLog);
     }
 
 

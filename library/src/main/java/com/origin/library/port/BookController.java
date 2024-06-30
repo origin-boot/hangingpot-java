@@ -20,41 +20,41 @@ import jakarta.validation.Valid;
 @RestController
 public class BookController extends BaseController {
 
-	@Autowired
-	private BookHandler bookHandler;
+  @Autowired
+  private BookHandler bookHandler;
 
-	@GetMapping("/api/books")
-	public Ok<SearchBooksResponse> searchBooks(@RequestUser User user, @Valid SearchBooksQuery query)
-			throws UserNotFoundError {
+  @GetMapping("/api/books")
+  public Ok<SearchBooksResponse> searchBooks(@RequestUser User user, @Valid SearchBooksQuery query)
+      throws UserNotFoundError {
 
-		if (query.getMine()) {
-			SearchBooksResponse response = bookHandler.searchMyBooks(user, query);
-			return Ok.of(response);
-		}
+    if (query.getMine()) {
+      SearchBooksResponse response = bookHandler.searchMyBooks(user, query);
+      return Ok.of(response);
+    }
 
-		SearchBooksResponse response = bookHandler.searchBooks(user, query);
-		return Ok.of(response);
-	}
+    SearchBooksResponse response = bookHandler.searchBooks(user, query);
+    return Ok.of(response);
+  }
 
-	@PostMapping("/api/books/{id}/borrow")
-	public Ok<Empty> borrowBook(@RequestUser User user, @PathVariable("id") final long id)
-			throws BookNotFoundError,
-			RequestForbiddenError,
-			UserNotFoundError {
+  @PostMapping("/api/books/{id}/borrow")
+  public Ok<Empty> borrowBook(@RequestUser User user, @PathVariable("id") final long id)
+      throws BookNotFoundError,
+      RequestForbiddenError,
+      UserNotFoundError {
 
-		bookHandler.borrowBook(user, id);
+    bookHandler.borrowBook(user, id);
 
-		return Ok.empty();
-	}
+    return Ok.empty();
+  }
 
-	@PostMapping("/api/books/{id}/return")
-	public Ok<Empty> returnBook(@RequestUser User user, @PathVariable("id") final long id)
-			throws BookNotFoundError,
-			RequestForbiddenError,
-			UserNotFoundError {
+  @PostMapping("/api/books/{id}/return")
+  public Ok<Empty> returnBook(@RequestUser User user, @PathVariable("id") final long id)
+      throws BookNotFoundError,
+      RequestForbiddenError,
+      UserNotFoundError {
 
-		bookHandler.returnBook(user, id);
+    bookHandler.returnBook(user, id);
 
-		return Ok.empty();
-	}
+    return Ok.empty();
+  }
 }

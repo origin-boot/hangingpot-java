@@ -43,6 +43,9 @@ jobs:
         java-version: '17'
         check-latest: true
 
+    - name: Run Java Lint
+      run: ./javalint.sh library/src
+
     - name: Build with Maven
       run: cd library && mvn clean package -DskipTests -Dmaven.javadoc.skip=true -B -V
 

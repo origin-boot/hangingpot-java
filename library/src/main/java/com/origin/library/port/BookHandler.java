@@ -15,81 +15,82 @@ import com.origin.library.infrastructure.util.TimeUtil;
 @Service
 public class BookHandler {
 
-	private BookRepository bookRepository;
-	private BorrowRepository borrowRepository;
+  private BookRepository bookRepository;
+  private BorrowRepository borrowRepository;
 
-	public BookHandler(final BookRepository bookRepository, final BorrowRepository borrowRepository) {
-		this.bookRepository = bookRepository;
-		this.borrowRepository = borrowRepository;
-	}
+  public BookHandler(final BookRepository bookRepository, final BorrowRepository borrowRepository) {
+    this.bookRepository = bookRepository;
+    this.borrowRepository = borrowRepository;
+  }
 
-	public Book getBookById(Long id) throws BookNotFoundError {
-		return bookRepository.findById(id).orElseThrow(
-				() -> new BookNotFoundError().setDetails("id: " + id));
-	}
+  public Book getBookById(Long id) throws BookNotFoundError {
+    return bookRepository.findById(id).orElseThrow(
+        () -> new BookNotFoundError().setDetails("id: " + id));
+  }
 
-	public SearchBooksResponse searchBooks(User user, SearchBooksQuery query) {
-		Page<Book> pagedBooks = bookRepository.searchBooks(query.getName(), query.getPageNum(), query.getPageSize());
-		SearchBooksResponse response = SearchBooksResponse.of(pagedBooks)
-				.getUserView(user);
+  public SearchBooksResponse searchBooks(User user, SearchBooksQuery query) {
+    Page<Book> pagedBooks = bookRepository.searchBooks(query.getName(),
+        query.getPageNum(), query.getPageSize());
+    SearchBooksResponse response = SearchBooksResponse.of(pagedBooks)
+        .getUserView(user);
 
-		return response;
-	}
+    return response;
+  }
 
-	public SearchBooksResponse searchMyBooks(User user, SearchBooksQuery query) {
-		Page<Borrow> pagedBorrows = borrowRepository.searchMyBorrows(user.getId(), query.getName(),
-				query.getPageNum(), query.getPageSize());
-		SearchBooksResponse response = SearchBooksResponse.ofPagedBorrows(pagedBorrows)
-				.getUserView(user);
+  public SearchBooksResponse searchMyBooks(User user, SearchBooksQuery query) {
+    Page<Borrow> pagedBorrows = borrowRepository.searchMyBorrows(user.getId(), query.getName(),
+        query.getPageNum(), query.getPageSize());
+    SearchBooksResponse response = SearchBooksResponse.ofPagedBorrows(pagedBorrows)
+        .getUserView(user);
 
-		return response;
-	}
+    return response;
+  }
 
-	public void borrowBook(User user, Long bookId) throws BookNotFoundError, RequestForbiddenError {
-		Book book = getBookById(bookId);
+  public void borrowBook(User user, Long bookId) throws BookNotFoundError, RequestForbiddenError {
+    Book book = getBookById(bookId);
 
-		if (!book.couldBeBorrowed()) {
-			throw new RequestForbiddenError().setDetails("Book is not available for borrowing");
-		}
+    if (!book.couldBeBorrowed()) {
+      throw new RequestForbiddenError().setDetails("Book is not available for borrowing");
+    }
 
-		book.setUserId(user.getId());
-		book.setReturnTime(0);
-		book.setBorrowTime(TimeUtil.getUnixTimestamp());
-		book = bookRepository.save(book);
+    book.setUserId(user.getId());
+    book.setReturnTime(0);
+    book.setBorrowTime(TimeUtil.getUnixTimestamp());
+    book = bookRepository.save(book);
 
-		Borrow borrow = new Borrow();
-		borrow.setUserId(user.getId());
-		borrow.setBookId(book.getId());
-		borrow.setBorrowTime(book.getBorrowTime());
-		borrow.setReturnTime(book.getReturnTime());
-		borrow.setCreateTime(TimeUtil.getUnixTimestamp());
-		borrow = borrowRepository.save(borrow);
+    Borrow borrow = new Borrow();
+    borrow.setUserId(user.getId());
+    borrow.setBookId(book.getId());
+    borrow.setBorrowTime(book.getBorrowTime());
+    borrow.setReturnTime(book.getReturnTime());
+    borrow.setCreateTime(TimeUtil.getUnixTimestamp());
+    borrow = borrowRepository.save(borrow);
 
-		return;
-	}
+    return;
+  }
 
-	public void returnBook(User user, Long bookId) throws BookNotFoundError, RequestForbiddenError {
-		Book book = getBookById(bookId);
+  public void returnBook(User user, Long bookId) throws BookNotFoundError, RequestForbiddenError {
+    Book book = getBookById(bookId);
 
-		if (!book.couldBeReturned()) {
-			throw new RequestForbiddenError().setDetails("Book is not available for returning");
-		}
+    if (!book.couldBeReturned()) {
+      throw new RequestForbiddenError().setDetails("Book is not available for returning");
+    }
 
-		if (!book.isBorrowedBy(user.getId())) {
-			throw new RequestForbiddenError().setDetails("Book is not borrowed by the user");
-		}
+    if (!book.isBorrowedBy(user.getId())) {
+      throw new RequestForbiddenError().setDetails("Book is not borrowed by the user");
+    }
 
-		book.setReturnTime(TimeUtil.getUnixTimestamp());
-		book = bookRepository.save(book);
+    book.setReturnTime(TimeUtil.getUnixTimestamp());
+    book = bookRepository.save(book);
 
-		Borrow borrow = new Borrow();
-		borrow.setUserId(user.getId());
-		borrow.setBookId(book.getId());
-		borrow.setBorrowTime(book.getBorrowTime());
-		borrow.setReturnTime(book.getReturnTime());
-		borrow.setCreateTime(TimeUtil.getUnixTimestamp());
-		borrow = borrowRepository.save(borrow);
+    Borrow borrow = new Borrow();
+    borrow.setUserId(user.getId());
+    borrow.setBookId(book.getId());
+    borrow.setBorrowTime(book.getBorrowTime());
+    borrow.setReturnTime(book.getReturnTime());
+    borrow.setCreateTime(TimeUtil.getUnixTimestamp());
+    borrow = borrowRepository.save(borrow);
 
-		return;
-	}
+    return;
+  }
 }

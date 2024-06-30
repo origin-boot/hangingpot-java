@@ -9,29 +9,29 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 public class ShortcutPagingQuery implements ShortcutExecutor {
-	@PersistenceContext
-	private EntityManager em;
+  @PersistenceContext
+  private EntityManager em;
 
-	public <T> Page<T> findAll(ShortcutQueryFunction<T> queryFunction, int pageNumber, int pageSize) {
-		JPAQuery<T> query = new JPAQuery<>(em);
-		queryFunction.apply(query);
+  public <T> Page<T> findAll(ShortcutQueryFunction<T> queryFunction, int pageNumber, int pageSize) {
+    JPAQuery<T> query = new JPAQuery<>(em);
+    queryFunction.apply(query);
 
-		@SuppressWarnings("deprecation")
-		long total = query.fetchCount();
+    @SuppressWarnings("deprecation")
+    long total = query.fetchCount();
 
-		if (total == 0) {
-			return Page.empty();
-		}
+    if (total == 0) {
+      return Page.empty();
+    }
 
-		List<T> list = query
-				.offset(pageOffset(pageNumber, pageSize))
-				.limit(pageSize(pageSize))
-				.fetch();
+    List<T> list = query
+        .offset(pageOffset(pageNumber, pageSize))
+        .limit(pageSize(pageSize))
+        .fetch();
 
-		return new Page<>(list, total);
-	}
+    return new Page<>(list, total);
+  }
 
-	public <T> Page<T> findAll(ShortcutQueryFunction<T> queryFunction, int pageSize) {
-		return findAll(queryFunction, 0, pageSize);
-	}
+  public <T> Page<T> findAll(ShortcutQueryFunction<T> queryFunction, int pageSize) {
+    return findAll(queryFunction, 0, pageSize);
+  }
 }

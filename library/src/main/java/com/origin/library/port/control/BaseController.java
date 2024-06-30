@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class BaseController {
 
-	@Autowired
-	protected IdentityHandlerInterceptor identityHandlerInterceptor;
+  @Autowired
+  protected IdentityHandlerInterceptor identityHandlerInterceptor;
 
-	// FIXME: other controllers should extend this class, add common methods here
+  // FIXME: other controllers should extend this class, add common methods here
 }

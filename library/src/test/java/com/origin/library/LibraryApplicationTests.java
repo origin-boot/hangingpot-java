@@ -6,10 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class LibraryApplicationTests {
 
-	// FIXME: implement some logic tests
+  // FIXME: implement some logic tests
 
-	@Test
-	void contextLoads() {
-	}
+  @Test
+  void contextLoads() {
+  }
 
 }

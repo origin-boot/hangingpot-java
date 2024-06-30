@@ -10,13 +10,13 @@ import com.origin.library.infrastructure.querydsl.ShortcutPredicateExecutor;
 import com.querydsl.core.types.Predicate;
 
 public interface BookRepository
-		extends JpaRepository<Book, Long>, ShortcutPredicateExecutor<Book> {
-	default Page<Book> searchBooks(String keyword, int pageNumber, int pageSize) {
-		QBook a = QBook.book;
-		Predicate p = predicate()
-				.and(isNotBlank(keyword), a.name.like(quoteLike(keyword)))
-				.build();
-		Sort sort = asc("id");
-		return findAll(p, sort, pageNumber, pageSize);
-	}
+    extends JpaRepository<Book, Long>, ShortcutPredicateExecutor<Book> {
+  default Page<Book> searchBooks(String keyword, int pageNumber, int pageSize) {
+    QBook a = QBook.book;
+    Predicate p = predicate()
+        .and(isNotBlank(keyword), a.name.like(quoteLike(keyword)))
+        .build();
+    Sort sort = asc("id");
+    return findAll(p, sort, pageNumber, pageSize);
+  }
 }

@@ -11,22 +11,23 @@ import com.origin.library.domain.error.UserNotFoundError;
 
 public class RequestUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().isAssignableFrom(User.class) &&
-                parameter.hasParameterAnnotation(RequestUser.class);
-    }
+  @Override
+  public boolean supportsParameter(MethodParameter parameter) {
+    return parameter.getParameterType().isAssignableFrom(User.class)
+        && parameter.hasParameterAnnotation(RequestUser.class);
+  }
 
-    @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
-            NativeWebRequest request, WebDataBinderFactory factory) throws Exception {
+  @Override
+  public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
+      NativeWebRequest request, WebDataBinderFactory factory) throws Exception {
 
-        Object value = request.getAttribute(UserHandlerInterceptor.ATTRIBUTE, NativeWebRequest.SCOPE_REQUEST);
-        // FIXME: If the required flag is false and the user does not exist,
-        // return null instead of throwing an exception.
-        if (value == null) {
-            throw new UserNotFoundError().setDetails("find user from http request by @RequestUser");
-        }
-        return (User) value;
+    Object value = request
+        .getAttribute(UserHandlerInterceptor.ATTRIBUTE, NativeWebRequest.SCOPE_REQUEST);
+    // FIXME: If the required flag is false and the user does not exist,
+    // return null instead of throwing an exception.
+    if (value == null) {
+      throw new UserNotFoundError().setDetails("find user from http request by @RequestUser");
     }
+    return (User) value;
+  }
 }

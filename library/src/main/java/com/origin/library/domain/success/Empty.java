@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class Empty {
-	private String message;
+  private String message;
 
-	public Empty() {
-		this.message = "OK";
-	}
+  public Empty() {
+    this.message = "OK";
+  }
 }

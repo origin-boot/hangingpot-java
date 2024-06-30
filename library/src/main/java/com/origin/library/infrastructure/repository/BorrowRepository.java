@@ -11,7 +11,7 @@ import com.origin.library.infrastructure.querydsl.ShortcutPagingQuery;
 import com.querydsl.core.types.Predicate;
 
 interface AdvancedBorrowRepository {
-	Page<Borrow> searchMyBorrows(long userId, String keyword, int offset, int limit);
+  Page<Borrow> searchMyBorrows(long userId, String keyword, int offset, int limit);
 }
 
 public interface BorrowRepository extends JpaRepository<Borrow, Long>, AdvancedBorrowRepository {
@@ -21,25 +21,25 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long>, AdvancedB
 @Service
 class AdvancedBorrowRepositoryImpl extends ShortcutPagingQuery implements AdvancedBorrowRepository {
 
-	@Override
-	public Page<Borrow> searchMyBorrows(long userId, String keyword, int pageNumber, int pageSize) {
-		QBorrow a = QBorrow.borrow;
-		QBook b = QBook.book;
+  @Override
+  public Page<Borrow> searchMyBorrows(long userId, String keyword, int pageNumber, int pageSize) {
+    QBorrow a = QBorrow.borrow;
+    QBook b = QBook.book;
 
-		Predicate p = predicate()
-				.and(userId > 0, a.userId.eq(userId))
-				.and(isNotBlank(keyword), b.name.like(quoteLike(keyword)))
-				.build();
+    Predicate p = predicate()
+        .and(userId > 0, a.userId.eq(userId))
+        .and(isNotBlank(keyword), b.name.like(quoteLike(keyword)))
+        .build();
 
-		Page<Borrow> r = findAll(
-				q -> q.select(a)
-						.from(a)
-						.join(b)
-						.on(a.bookId.eq(b.id))
-						.where(p)
-						.orderBy(a.id.desc()),
-				pageNumber, pageSize);
+    Page<Borrow> r = findAll(
+        q -> q.select(a)
+            .from(a)
+            .join(b)
+            .on(a.bookId.eq(b.id))
+            .where(p)
+            .orderBy(a.id.desc()),
+        pageNumber, pageSize);
 
-		return r;
-	}
+    return r;
+  }
 }
